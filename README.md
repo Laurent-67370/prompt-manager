@@ -1,2 +1,133 @@
-# prompt-manager
-Gestionnaire de prompts IA
+# 🚀 Prompt Manager - Gestionnaire de Prompts IA
+
+Application React moderne pour organiser et gérer vos prompts IA avec Firebase.
+
+## ✨ Fonctionnalités
+
+- ✅ **Gestion complète** : Créer, modifier, supprimer des prompts
+- 🔍 **Recherche puissante** : Par titre, contenu, catégorie ou tags
+- 📊 **Double affichage** : Vue tableau ou grille
+- 🏷️ **Organisation** : Catégories et tags personnalisables
+- 📋 **Copie rapide** : Un clic pour copier dans le presse-papiers
+- 🔐 **Sécurisé** : Authentification Firebase et données privées
+- 📱 **Responsive** : Design adapté mobile, tablette et desktop
+
+## 🎯 Démarrage rapide
+
+### 1. Installation
+
+```bash
+# Installer les dépendances
+npm install
+```
+
+### 2. Configuration Firebase
+
+1. Créez un projet sur https://firebase.google.com/
+2. Activez **Authentication** (mode Anonyme)
+3. Créez une base de données **Firestore**
+4. Copiez votre configuration Firebase
+
+### 3. Variables d'environnement
+
+Créez un fichier `.env` à la racine :
+
+```env
+VITE_FIREBASE_API_KEY=votre_api_key
+VITE_FIREBASE_AUTH_DOMAIN=votre_projet.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=votre_projet_id
+VITE_FIREBASE_STORAGE_BUCKET=votre_projet.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
+VITE_FIREBASE_APP_ID=1:123456789:web:abcdef
+VITE_APP_ID=prompt-manager
+```
+
+### 4. Règles Firestore
+
+Dans Firebase Console > Firestore > Règles :
+
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /artifacts/{appId}/users/{userId}/prompts/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
+```
+
+### 5. Lancer l'application
+
+```bash
+# Développement local
+npm run dev
+
+# Build de production
+npm run build
+
+# Prévisualiser le build
+npm run preview
+```
+
+## 📦 Structure du projet
+
+```
+prompt-manager/
+├── src/
+│   ├── App.tsx              # Composant principal
+│   ├── main.tsx            # Point d'entrée React
+│   ├── index.css           # Styles globaux
+│   └── config/
+│       └── firebase.ts     # Configuration Firebase
+├── public/                 # Assets statiques
+├── .env                    # Variables d'environnement (à créer)
+├── .env.example           # Exemple de variables
+├── netlify.toml           # Configuration Netlify
+├── package.json           # Dépendances
+└── index.html             # HTML principal
+```
+
+## 🌐 Déploiement sur Netlify
+
+### Option 1 : Via GitHub (Recommandé)
+
+1. Poussez votre code sur GitHub
+2. Connectez-vous à https://app.netlify.com/
+3. Importez votre dépôt
+4. Ajoutez les variables d'environnement dans les paramètres
+5. Déployez !
+
+### Option 2 : Déploiement manuel
+
+1. `npm run build`
+2. Glissez-déposez le dossier `dist` sur Netlify
+3. Ajoutez les variables d'environnement
+4. Redéployez
+
+## 🔐 Sécurité
+
+- Authentification Firebase obligatoire
+- Chaque utilisateur accède uniquement à ses propres données
+- Règles Firestore strictes
+- Pas de données sensibles dans le code
+
+## 🛠️ Technologies
+
+- **React 18** + **TypeScript**
+- **Firebase** (Auth + Firestore)
+- **Vite** (Build ultra-rapide)
+- **Tailwind CSS** (Styling)
+- **Lucide React** (Icônes)
+
+## 📝 Licence
+
+MIT - Libre d'utilisation
+
+## 🤝 Contribution
+
+Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou une pull request.
+
+---
+
+Créé avec ❤️ pour optimiser votre workflow IA
