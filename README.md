@@ -14,7 +14,7 @@ Application React moderne pour organiser et gérer vos prompts IA avec Firebase.
 - 🎨 **Design moderne** : Interface premium avec glassmorphism, gradients et micro-animations
 - 💡 **Aide intégrée** : Guide d'utilisation complet accessible en un clic
 - 📊 **Statistiques en temps réel** : Visualisez vos prompts, catégories et tags
-- 📱 **Progressive Web App (PWA)** : Installez l'app sur votre appareil et utilisez-la offline
+- 📱 **Progressive Web App (PWA)** : Installez l'app sur votre appareil et utilisez-la offline avec cache localStorage
 - 🔐 **Sécurisé** : Authentification Firebase et données privées
 - 📱 **Responsive** : Design adapté mobile, tablette et desktop
 
@@ -229,11 +229,41 @@ L'application utilise :
 
 ### 🔧 Fonctionnalités Offline
 
-Avec le Service Worker, l'application fonctionne partiellement hors ligne :
+L'application dispose d'un **mode offline complet** avec cache local persistant :
+
+#### 📦 Cache Local (localStorage)
+- ✅ **Sauvegarde automatique** : Tous vos prompts sont sauvegardés localement
+- ✅ **Chargement instantané** : Affichage immédiat au démarrage, même sans connexion
+- ✅ **Persistance des données** : Vos prompts restent disponibles même hors ligne
+- 🔄 **Synchronisation automatique** : Mise à jour du cache quand vous êtes en ligne
+
+#### 🌐 Détection Online/Offline
+- 📶 **Indicateur de statut** : Badge "Mode hors ligne" visible en haut de page
+- 🎯 **Adaptation intelligente** : Les boutons nécessitant une connexion sont désactivés
+- ⚡ **Basculement automatique** : L'app détecte et s'adapte aux changements de connexion
+
+#### ✅ Fonctionnalités disponibles hors ligne
 - ✅ Interface utilisateur entièrement accessible
-- ✅ Consultation des prompts en cache
-- ✅ Recherche dans les prompts en cache
-- ⚠️ Création/modification nécessite une connexion (Firebase)
+- ✅ Consultation de tous vos prompts en cache
+- ✅ Recherche complète dans vos prompts
+- ✅ Export de vos prompts en JSON
+- ✅ Copie des prompts dans le presse-papiers
+- ✅ Basculement entre vue Table et Grille
+- ✅ Visualisation des statistiques
+
+#### ⚠️ Fonctionnalités nécessitant une connexion
+- 🔌 Création de nouveaux prompts
+- 🔌 Modification de prompts existants
+- 🔌 Suppression de prompts
+- 🔌 Import de prompts JSON
+- 🔌 Chargement des exemples prédéfinis
+
+#### 🔄 Synchronisation
+Dès que la connexion est rétablie :
+1. L'indicateur "Mode hors ligne" disparaît
+2. Les boutons se réactivent automatiquement
+3. Les données Firebase se synchronisent avec le cache local
+4. Toutes les fonctionnalités redeviennent disponibles
 
 ## 🔐 Sécurité
 
