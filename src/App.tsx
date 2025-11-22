@@ -53,12 +53,16 @@ interface PromptData {
 // --- COMPOSANTS ---
 
 export default function PromptManager() {
+  console.log('🚀 PromptManager: Composant initialisé');
+
   const [user, setUser] = useState<User | null>(null);
   const [prompts, setPrompts] = useState<PromptData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  console.log('🚀 PromptManager: État initial créé');
 
   // État du formulaire (Modal)
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -78,6 +82,8 @@ export default function PromptManager() {
 
   // Clé pour le localStorage
   const STORAGE_KEY = 'prompt-manager-cache';
+
+  console.log('🚀 PromptManager: Variables d\'état configurées');
 
   // --- DÉTECTION ONLINE/OFFLINE ---
   useEffect(() => {
@@ -120,30 +126,45 @@ export default function PromptManager() {
 
   const loadFromLocalStorage = (): PromptData[] | null => {
     try {
+      console.log('📦 Tentative de chargement du cache local...');
       const cached = localStorage.getItem(STORAGE_KEY);
       if (!cached) {
         console.log('📦 Aucun cache local trouvé');
         return null;
       }
 
+      console.log('📦 Cache trouvé, parsing...');
       const parsed = JSON.parse(cached);
+
       if (!Array.isArray(parsed)) {
         console.error('❌ Cache corrompu : pas un tableau');
         localStorage.removeItem(STORAGE_KEY);
         return null;
       }
 
-      // Les timestamps sont stockés comme des nombres (millisecondes)
-      // On les garde comme tels, ils seront gérés par formatDate()
-      console.log(`📦 ${parsed.length} prompt(s) chargé(s) depuis le cache`);
-      return parsed as PromptData[];
+      // Valider que chaque prompt a les champs requis
+      const validPrompts = parsed.filter((p: any) => {
+        const isValid = p.id && p.title && p.content;
+        if (!isValid) {
+          console.warn('⚠️ Prompt invalide détecté:', p);
+        }
+        return isValid;
+      });
+
+      if (validPrompts.length !== parsed.length) {
+        console.warn(`⚠️ ${parsed.length - validPrompts.length} prompt(s) invalide(s) ignoré(s)`);
+      }
+
+      console.log(`✅ ${validPrompts.length} prompt(s) chargé(s) depuis le cache`);
+      return validPrompts as PromptData[];
     } catch (error) {
       console.error('❌ Erreur lors du chargement du cache:', error);
       // Supprimer le cache corrompu
       try {
+        console.log('🗑️ Suppression du cache corrompu...');
         localStorage.removeItem(STORAGE_KEY);
       } catch (e) {
-        console.error('Impossible de supprimer le cache:', e);
+        console.error('❌ Impossible de supprimer le cache:', e);
       }
       return null;
     }
@@ -623,9 +644,18 @@ export default function PromptManager() {
 
   // --- AFFICHAGE ---
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+  console.log('🎨 PromptManager: Rendu du composant', {
+    isLoading,
+    promptsCount: prompts.length,
+    isOnline,
+    isFirebaseConfigured,
+    user: user ? 'connecté' : 'non connecté'
+  });
+
+  try {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
 
         {/* HEADER */}
         <div className="mb-8">
@@ -1336,5 +1366,59 @@ export default function PromptManager() {
 
       </div>
     </div>
-  );
+    );
+  } catch (error) {
+    console.error('❌ ERREUR CRITIQUE lors du rendu:', error);
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        padding: '20px',
+        fontFamily: 'system-ui',
+        backgroundColor: '#fee'
+      }}>
+        <h1 style={{ fontSize: '32px', marginBottom: '20px', color: '#c00' }}>
+          Erreur de chargement
+        </h1>
+        <p style={{ fontSize: '18px', color: '#666', marginBottom: '10px' }}>
+          L'application n'a pas pu démarrer correctement.
+        </p>
+        <pre style={{
+          backgroundColor: '#f5f5f5',
+          padding: '15px',
+          borderRadius: '8px',
+          maxWidth: '600px',
+          overflow: 'auto',
+          fontSize: '14px'
+        }}>
+          {error instanceof Error ? error.message : String(error)}
+        </pre>
+        <button
+          onClick={() => {
+            localStorage.clear();
+            window.location.reload();
+          }}
+          style={{
+            marginTop: '20px',
+            padding: '12px 24px',
+            backgroundColor: '#4f46e5',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            cursor: 'pointer'
+          }}
+        >
+          Nettoyer et recharger
+        </button>
+        <p style={{ fontSize: '12px', color: '#999', marginTop: '20px' }}>
+          Ouvrez la console (F12) pour plus de détails
+        </p>
+      </div>
+    );
+  }
 }
