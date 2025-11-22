@@ -46,8 +46,8 @@ interface PromptData {
   content: string;
   category: string;
   tags: string[];
-  createdAt: Timestamp | null;
-  updatedAt: Timestamp | null;
+  createdAt: Timestamp | null | number;
+  updatedAt: Timestamp | null | number;
 }
 
 // --- COMPOSANTS ---
@@ -104,8 +104,12 @@ export default function PromptManager() {
     try {
       const serialized = JSON.stringify(data.map(p => ({
         ...p,
-        createdAt: p.createdAt?.toMillis(),
-        updatedAt: p.updatedAt?.toMillis()
+        createdAt: p.createdAt
+          ? (typeof p.createdAt === 'number' ? p.createdAt : p.createdAt.toMillis())
+          : null,
+        updatedAt: p.updatedAt
+          ? (typeof p.updatedAt === 'number' ? p.updatedAt : p.updatedAt.toMillis())
+          : null
       })));
       localStorage.setItem(STORAGE_KEY, serialized);
       console.log('💾 Prompts sauvegardés en cache local');
@@ -129,14 +133,10 @@ export default function PromptManager() {
         return null;
       }
 
-      const prompts = parsed.map((p: any) => ({
-        ...p,
-        createdAt: p.createdAt ? Timestamp.fromMillis(p.createdAt) : null,
-        updatedAt: p.updatedAt ? Timestamp.fromMillis(p.updatedAt) : null
-      }));
-
-      console.log(`📦 ${prompts.length} prompt(s) chargé(s) depuis le cache`);
-      return prompts;
+      // Les timestamps sont stockés comme des nombres (millisecondes)
+      // On les garde comme tels, ils seront gérés par formatDate()
+      console.log(`📦 ${parsed.length} prompt(s) chargé(s) depuis le cache`);
+      return parsed as PromptData[];
     } catch (error) {
       console.error('❌ Erreur lors du chargement du cache:', error);
       // Supprimer le cache corrompu
@@ -221,8 +221,12 @@ export default function PromptManager() {
       // Tri côté client (pour éviter les index complexes Firestore)
       // Tri par date de mise à jour descendante
       loadedPrompts.sort((a, b) => {
-        const dateA = a.updatedAt?.toMillis() || 0;
-        const dateB = b.updatedAt?.toMillis() || 0;
+        const dateA = a.updatedAt
+          ? (typeof a.updatedAt === 'number' ? a.updatedAt : a.updatedAt.toMillis())
+          : 0;
+        const dateB = b.updatedAt
+          ? (typeof b.updatedAt === 'number' ? b.updatedAt : b.updatedAt.toMillis())
+          : 0;
         return dateB - dateA;
       });
 
@@ -269,11 +273,12 @@ export default function PromptManager() {
     if (!formData.title.trim() || !formData.content.trim()) return;
 
     const tags = formData.tagsInput.split(',').map(t => t.trim()).filter(t => t !== '');
-    const now = Timestamp.now();
 
     try {
       // MODE OFFLINE ou Firebase non configuré : sauvegarder localement
       if (!isOnline || !isFirebaseConfigured || !user) {
+        const now = Date.now(); // Utiliser timestamp en millisecondes
+
         if (editingPrompt) {
           // Mise à jour locale
           const updatedPrompts = prompts.map(p =>
@@ -388,8 +393,16 @@ export default function PromptManager() {
         content: prompt.content,
         category: prompt.category,
         tags: prompt.tags,
-        createdAt: prompt.createdAt ? prompt.createdAt.toDate().toISOString() : null,
-        updatedAt: prompt.updatedAt ? prompt.updatedAt.toDate().toISOString() : null
+        createdAt: prompt.createdAt
+          ? (typeof prompt.createdAt === 'number'
+            ? new Date(prompt.createdAt).toISOString()
+            : prompt.createdAt.toDate().toISOString())
+          : null,
+        updatedAt: prompt.updatedAt
+          ? (typeof prompt.updatedAt === 'number'
+            ? new Date(prompt.updatedAt).toISOString()
+            : prompt.updatedAt.toDate().toISOString())
+          : null
       }));
 
       const dataStr = JSON.stringify(exportData, null, 2);
@@ -419,8 +432,16 @@ export default function PromptManager() {
         content: prompt.content,
         category: prompt.category,
         tags: prompt.tags,
-        createdAt: prompt.createdAt ? prompt.createdAt.toDate().toISOString() : null,
-        updatedAt: prompt.updatedAt ? prompt.updatedAt.toDate().toISOString() : null
+        createdAt: prompt.createdAt
+          ? (typeof prompt.createdAt === 'number'
+            ? new Date(prompt.createdAt).toISOString()
+            : prompt.createdAt.toDate().toISOString())
+          : null,
+        updatedAt: prompt.updatedAt
+          ? (typeof prompt.updatedAt === 'number'
+            ? new Date(prompt.updatedAt).toISOString()
+            : prompt.updatedAt.toDate().toISOString())
+          : null
       };
 
       const dataStr = JSON.stringify(exportData, null, 2);
@@ -575,10 +596,18 @@ export default function PromptManager() {
   }, [prompts, searchTerm]);
 
   // --- UTILITAIRES ---
-  const formatDate = (timestamp: Timestamp | null | undefined) => {
+  const formatDate = (timestamp: Timestamp | number | null | undefined) => {
     if (!timestamp) return "Pas de date";
     try {
-      const date = timestamp.toDate();
+      // Si c'est un number (millisecondes), créer un Date directement
+      let date: Date;
+      if (typeof timestamp === 'number') {
+        date = new Date(timestamp);
+      } else {
+        // Si c'est un Timestamp Firebase
+        date = timestamp.toDate();
+      }
+
       return new Intl.DateTimeFormat('fr-FR', {
         day: '2-digit',
         month: 'short',
