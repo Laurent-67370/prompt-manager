@@ -5,12 +5,15 @@ Application React moderne pour organiser et gérer vos prompts IA avec Firebase.
 ## ✨ Fonctionnalités
 
 - ✅ **Gestion complète** : Créer, modifier, supprimer des prompts
-- 🔍 **Recherche puissante** : Par titre, contenu, catégorie ou tags
-- 📊 **Double affichage** : Vue tableau ou grille
+- 🔍 **Recherche puissante** : Par titre, contenu, catégorie ou tags avec bouton clear
+- 📊 **Double affichage** : Vue tableau ou grille avec animations fluides
 - 🏷️ **Organisation** : Catégories et tags personnalisables
 - 📋 **Copie rapide** : Un clic pour copier dans le presse-papiers
 - 💾 **Import/Export** : Sauvegardez et chargez vos prompts depuis/vers des fichiers JSON
-- 📦 **Exemples intégrés** : Chargez des prompts d'exemple prédéfinis pour démarrer rapidement
+- 📦 **Exemples intégrés** : Chargez des prompts d'exemple prédéfinis (détection automatique des doublons)
+- 🎨 **Design moderne** : Interface premium avec glassmorphism, gradients et micro-animations
+- 💡 **Aide intégrée** : Guide d'utilisation complet accessible en un clic
+- 📊 **Statistiques en temps réel** : Visualisez vos prompts, catégories et tags
 - 🔐 **Sécurisé** : Authentification Firebase et données privées
 - 📱 **Responsive** : Design adapté mobile, tablette et desktop
 
@@ -150,6 +153,20 @@ Cliquez sur le bouton "Exemples" pour charger automatiquement 5 prompts d'exempl
 - Rédaction SEO
 - Analyse de données
 
+**Note** : Le système détecte automatiquement les exemples déjà présents et ne charge que ceux qui manquent. Le bouton se désactive lorsque tous les exemples sont chargés.
+
+## 💡 Aide Intégrée
+
+L'application dispose d'un **guide d'utilisation complet** accessible via le bouton "Aide" dans le header (icône `?`).
+
+Le guide comprend :
+- 🚀 **Démarrage rapide** : 3 étapes simples pour commencer
+- 📚 **Fonctionnalités principales** : Copie rapide, recherche, export/import, organisation
+- 📥 **Guide import/export** : Instructions détaillées pour l'importation et l'exportation
+- 💡 **Astuces et raccourcis** : Optimisez votre utilisation de l'application
+
+**Accès rapide** : Cliquez sur le bouton "Aide" en haut à droite de l'écran à tout moment.
+
 ## 🔐 Sécurité
 
 - Authentification Firebase obligatoire
@@ -157,13 +174,35 @@ Cliquez sur le bouton "Exemples" pour charger automatiquement 5 prompts d'exempl
 - Règles Firestore strictes
 - Pas de données sensibles dans le code
 
+## 🎨 Design Moderne
+
+L'application bénéficie d'un design premium avec :
+
+### Interface
+- ✨ **Glassmorphism** : Effets de verre dépoli et transparence
+- 🌈 **Gradients** : Dégradés de couleurs harmonieux
+- 💫 **Animations fluides** : Transitions et micro-interactions (hover, scale, translate)
+- 🎯 **Ombres dynamiques** : Effets d'élévation au survol
+
+### Composants
+- 🔘 **Boutons premium** : Effets de glow et animations
+- 📊 **Cartes modernes** : Bordures animées et transformations 3D
+- 🔍 **Recherche intelligente** : Focus states et bouton clear automatique
+- 📱 **Responsive complet** : Breakpoints sm, md, lg optimisés
+
+### Expérience utilisateur
+- 🎭 **États visuels** : Loading, empty state, notifications
+- 🌊 **Transitions douces** : Duration 200-300ms pour fluidité
+- 🎨 **Palette cohérente** : Indigo, purple, slate pour harmonie
+- ⚡ **Performance** : Optimisé avec useMemo et callbacks
+
 ## 🛠️ Technologies
 
 - **React 18** + **TypeScript**
 - **Firebase** (Auth + Firestore)
 - **Vite** (Build ultra-rapide)
-- **Tailwind CSS** (Styling)
-- **Lucide React** (Icônes)
+- **Tailwind CSS** (Styling moderne)
+- **Lucide React** (Icônes vectorielles)
 
 ## 📝 Licence
 

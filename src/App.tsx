@@ -31,7 +31,11 @@ import {
   List as ListIcon,
   Download,
   Upload,
-  FileJson
+  FileJson,
+  HelpCircle,
+  Zap,
+  BookOpen,
+  Sparkles
 } from 'lucide-react';
 
 // --- TYPES ---
@@ -57,6 +61,7 @@ export default function PromptManager() {
   // État du formulaire (Modal)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPrompt, setEditingPrompt] = useState<PromptData | null>(null);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   
   // Champs du formulaire
   const [formData, setFormData] = useState({
@@ -418,21 +423,33 @@ export default function PromptManager() {
         <div className="mb-8">
           <div className="flex flex-col gap-6">
             {/* Logo et titre */}
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl blur opacity-50"></div>
-                <div className="relative bg-gradient-to-br from-indigo-500 to-purple-600 p-4 rounded-2xl shadow-lg">
-                  <Terminal className="w-8 h-8 text-white" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl blur opacity-50"></div>
+                  <div className="relative bg-gradient-to-br from-indigo-500 to-purple-600 p-4 rounded-2xl shadow-lg">
+                    <Terminal className="w-8 h-8 text-white" />
+                  </div>
+                </div>
+                <div>
+                  <h1 className="text-4xl font-black text-slate-900 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600">
+                    Prompt Manager
+                  </h1>
+                  <p className="text-sm text-slate-600 mt-1 font-medium">
+                    Organisez et gérez vos prompts IA efficacement
+                  </p>
                 </div>
               </div>
-              <div>
-                <h1 className="text-4xl font-black text-slate-900 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600">
-                  Prompt Manager
-                </h1>
-                <p className="text-sm text-slate-600 mt-1 font-medium">
-                  Organisez et gérez vos prompts IA efficacement
-                </p>
-              </div>
+
+              {/* Bouton d'aide */}
+              <button
+                onClick={() => setIsHelpOpen(true)}
+                className="group relative flex items-center gap-2 px-4 py-3 bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-cyan-50 border border-slate-200 hover:border-blue-300 text-slate-700 hover:text-blue-700 font-semibold rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
+                title="Aide et documentation"
+              >
+                <HelpCircle className="w-5 h-5" />
+                <span className="hidden md:inline">Aide</span>
+              </button>
             </div>
 
             {/* Actions principales */}
@@ -902,6 +919,184 @@ export default function PromptManager() {
               <CheckCircle2 className="w-6 h-6" />
             </div>
             <span className="font-bold text-lg">Copié dans le presse-papiers !</span>
+          </div>
+        )}
+
+        {/* MODAL D'AIDE */}
+        {isHelpOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md transition-all animate-in fade-in duration-200 overflow-y-auto">
+            <div className="bg-white rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border-2 border-slate-200/50 animate-in zoom-in-95 duration-200 my-8">
+              <div className="p-6 border-b-2 border-slate-100 flex justify-between items-center bg-gradient-to-br from-blue-50 to-cyan-50">
+                <h2 className="text-2xl font-black text-slate-900 flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-blue-100">
+                    <HelpCircle className="w-6 h-6 text-blue-600" />
+                  </div>
+                  Guide d'utilisation
+                </h2>
+                <button onClick={() => setIsHelpOpen(false)} className="text-slate-400 hover:text-slate-700 hover:bg-slate-200 p-2.5 rounded-xl transition-all hover:scale-110">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6 overflow-y-auto">
+                {/* Bienvenue */}
+                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border-2 border-indigo-200/50">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl">
+                      <Sparkles className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-black text-slate-900 mb-2">Bienvenue sur Prompt Manager !</h3>
+                      <p className="text-slate-700 leading-relaxed">
+                        Une application moderne pour organiser, gérer et optimiser vos prompts d'intelligence artificielle.
+                        Créez, recherchez, catégorisez et partagez vos prompts en toute simplicité.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Démarrage rapide */}
+                <div>
+                  <h3 className="text-xl font-black text-slate-900 mb-4 flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-amber-600" />
+                    Démarrage rapide
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex gap-4 items-start bg-white rounded-xl p-4 border-2 border-slate-200/50 hover:border-indigo-300 transition-colors">
+                      <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-lg flex items-center justify-center font-bold">1</div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 mb-1">Créez votre premier prompt</h4>
+                        <p className="text-sm text-slate-600">Cliquez sur le bouton "Nouveau Prompt" pour créer votre premier prompt. Ajoutez un titre, une catégorie et des tags pour une organisation optimale.</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-4 items-start bg-white rounded-xl p-4 border-2 border-slate-200/50 hover:border-green-300 transition-colors">
+                      <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-lg flex items-center justify-center font-bold">2</div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 mb-1">Ou chargez des exemples</h4>
+                        <p className="text-sm text-slate-600">Cliquez sur "Exemples" pour charger 5 prompts prédéfinis et découvrir les possibilités.</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-4 items-start bg-white rounded-xl p-4 border-2 border-slate-200/50 hover:border-blue-300 transition-colors">
+                      <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-600 text-white rounded-lg flex items-center justify-center font-bold">3</div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 mb-1">Recherchez et organisez</h4>
+                        <p className="text-sm text-slate-600">Utilisez la barre de recherche pour trouver vos prompts par titre, contenu, catégorie ou tags. Basculez entre la vue Table et Grille selon vos préférences.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Fonctionnalités principales */}
+                <div>
+                  <h3 className="text-xl font-black text-slate-900 mb-4 flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-purple-600" />
+                    Fonctionnalités principales
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-gradient-to-br from-white to-indigo-50/30 rounded-xl p-4 border-2 border-slate-200/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Copy className="w-5 h-5 text-indigo-600" />
+                        <h4 className="font-bold text-slate-900">Copie rapide</h4>
+                      </div>
+                      <p className="text-sm text-slate-600">Cliquez sur l'icône de copie pour copier instantanément un prompt dans votre presse-papiers.</p>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-xl p-4 border-2 border-slate-200/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Search className="w-5 h-5 text-purple-600" />
+                        <h4 className="font-bold text-slate-900">Recherche puissante</h4>
+                      </div>
+                      <p className="text-sm text-slate-600">Recherchez dans tous vos prompts par titre, contenu, catégorie ou tags en temps réel.</p>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-white to-green-50/30 rounded-xl p-4 border-2 border-slate-200/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Download className="w-5 h-5 text-green-600" />
+                        <h4 className="font-bold text-slate-900">Export/Import</h4>
+                      </div>
+                      <p className="text-sm text-slate-600">Exportez tous vos prompts ou un seul en JSON. Importez des prompts depuis des fichiers externes.</p>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-white to-amber-50/30 rounded-xl p-4 border-2 border-slate-200/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Tag className="w-5 h-5 text-amber-600" />
+                        <h4 className="font-bold text-slate-900">Organisation</h4>
+                      </div>
+                      <p className="text-sm text-slate-600">Catégorisez vos prompts et ajoutez des tags pour une organisation parfaite.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Import/Export */}
+                <div>
+                  <h3 className="text-xl font-black text-slate-900 mb-4 flex items-center gap-2">
+                    <FileJson className="w-5 h-5 text-green-600" />
+                    Import/Export de prompts
+                  </h3>
+                  <div className="space-y-3 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5 border-2 border-green-200/50">
+                    <div>
+                      <h4 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
+                        <Download className="w-4 h-4 text-green-600" />
+                        Exporter
+                      </h4>
+                      <ul className="text-sm text-slate-700 space-y-1 ml-6 list-disc">
+                        <li><strong>Tous les prompts</strong> : Bouton "Exporter" dans le header</li>
+                        <li><strong>Un seul prompt</strong> : Icône de téléchargement sur chaque prompt</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
+                        <Upload className="w-4 h-4 text-green-600" />
+                        Importer
+                      </h4>
+                      <ul className="text-sm text-slate-700 space-y-1 ml-6 list-disc">
+                        <li>Cliquez sur "Importer" et sélectionnez un fichier JSON</li>
+                        <li>Format accepté : tableau ou objet JSON avec titre et contenu</li>
+                        <li>Les prompts sont automatiquement ajoutés à votre collection</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Raccourcis */}
+                <div>
+                  <h3 className="text-xl font-black text-slate-900 mb-4">Astuces et raccourcis</h3>
+                  <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-5 border-2 border-blue-200/50">
+                    <ul className="text-sm text-slate-700 space-y-2">
+                      <li className="flex items-start gap-2">
+                        <span className="text-blue-600 font-bold">•</span>
+                        <span>Utilisez des <strong>tags</strong> séparés par des virgules pour une recherche plus efficace</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-blue-600 font-bold">•</span>
+                        <span>Changez entre les vues <strong>Table</strong> et <strong>Grille</strong> selon vos préférences</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-blue-600 font-bold">•</span>
+                        <span>Les boutons "Exemples" se désactive automatiquement quand tous les exemples sont chargés</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-blue-600 font-bold">•</span>
+                        <span>Les <strong>statistiques</strong> en haut affichent votre total de prompts, catégories et tags</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-blue-600 font-bold">•</span>
+                        <span>Vos données sont <strong>privées</strong> et sécurisées avec Firebase</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 border-t-2 border-slate-100 bg-gradient-to-br from-slate-50 to-white flex justify-end">
+                <button
+                  onClick={() => setIsHelpOpen(false)}
+                  className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+                >
+                  Compris !
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
