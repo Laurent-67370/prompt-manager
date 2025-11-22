@@ -80,6 +80,10 @@ export default function PromptManager() {
   // État de la copie
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  // État de synchronisation
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+
   // Clé pour le localStorage
   const STORAGE_KEY = 'prompt-manager-cache';
 
@@ -90,6 +94,10 @@ export default function PromptManager() {
     const handleOnline = () => {
       console.log('🌐 Connexion rétablie');
       setIsOnline(true);
+      // Déclencher la synchronisation après un court délai
+      setTimeout(() => {
+        syncOfflinePrompts();
+      }, 1000);
     };
     const handleOffline = () => {
       console.log('📴 Mode hors ligne');
@@ -103,7 +111,7 @@ export default function PromptManager() {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
+  }, [prompts, user, isFirebaseConfigured]);
 
   // --- CACHE LOCAL ---
   const saveToLocalStorage = (data: PromptData[]) => {
@@ -167,6 +175,66 @@ export default function PromptManager() {
         console.error('❌ Impossible de supprimer le cache:', e);
       }
       return null;
+    }
+  };
+
+  // --- SYNCHRONISATION OFFLINE -> ONLINE ---
+  const syncOfflinePrompts = async () => {
+    if (!isFirebaseConfigured || !user || !isOnline) {
+      console.log('⏸️ Conditions de sync non remplies');
+      return;
+    }
+
+    // Trouver les prompts avec ID offline
+    const offlinePrompts = prompts.filter(p => p.id.startsWith('offline-'));
+
+    if (offlinePrompts.length === 0) {
+      console.log('✅ Aucun prompt offline à synchroniser');
+      return;
+    }
+
+    console.log(`🔄 Synchronisation de ${offlinePrompts.length} prompt(s) offline...`);
+    setIsSyncing(true);
+
+    try {
+      const collectionRef = collection(db, 'artifacts', appId, 'users', user.uid, 'prompts');
+      let syncedCount = 0;
+
+      for (const offlinePrompt of offlinePrompts) {
+        try {
+          // Créer le prompt sur Firebase
+          const docRef = await addDoc(collectionRef, {
+            title: offlinePrompt.title,
+            content: offlinePrompt.content,
+            category: offlinePrompt.category,
+            tags: offlinePrompt.tags,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+
+          console.log(`✅ Prompt "${offlinePrompt.title}" synchronisé avec ID: ${docRef.id}`);
+          syncedCount++;
+
+          // Supprimer la version offline du cache local
+          const updatedPrompts = prompts.filter(p => p.id !== offlinePrompt.id);
+          setPrompts(updatedPrompts);
+          saveToLocalStorage(updatedPrompts);
+        } catch (error) {
+          console.error(`❌ Erreur lors de la sync du prompt "${offlinePrompt.title}":`, error);
+        }
+      }
+
+      console.log(`🎉 Synchronisation terminée: ${syncedCount}/${offlinePrompts.length} prompt(s) synchronisé(s)`);
+
+      if (syncedCount > 0) {
+        // Afficher un message de succès à l'utilisateur
+        setSyncMessage(`${syncedCount} prompt(s) synchronisé(s) avec Firebase !`);
+        setTimeout(() => setSyncMessage(null), 4000);
+      }
+    } catch (error) {
+      console.error('❌ Erreur lors de la synchronisation:', error);
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -266,6 +334,18 @@ export default function PromptManager() {
 
     return () => unsubscribe();
   }, [user, isOnline]);
+
+  // --- SYNCHRONISATION AUTOMATIQUE ---
+  useEffect(() => {
+    // Synchroniser les prompts offline quand on passe en mode online avec un user connecté
+    if (user && isOnline && isFirebaseConfigured && !isSyncing) {
+      // Attendre un peu que Firebase soit prêt
+      const timer = setTimeout(() => {
+        syncOfflinePrompts();
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [user, isOnline, isFirebaseConfigured]);
 
   // --- GESTIONNAIRES D'ACTIONS ---
 
@@ -1177,12 +1257,32 @@ export default function PromptManager() {
         )}
 
         {/* NOTIFICATION DE COPIE */}
-        {copiedId && (
+        {copiedId && !isSyncing && (
           <div className="fixed bottom-6 right-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-300 border-2 border-green-400/50">
             <div className="p-1 bg-white/20 rounded-lg">
               <CheckCircle2 className="w-6 h-6" />
             </div>
             <span className="font-bold text-lg">Copié dans le presse-papiers !</span>
+          </div>
+        )}
+
+        {/* NOTIFICATION DE SYNCHRONISATION */}
+        {isSyncing && (
+          <div className="fixed bottom-6 right-6 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-300 border-2 border-blue-400/50">
+            <div className="p-1 bg-white/20 rounded-lg">
+              <Loader2 className="w-6 h-6 animate-spin" />
+            </div>
+            <span className="font-bold text-lg">Synchronisation en cours...</span>
+          </div>
+        )}
+
+        {/* MESSAGE DE SYNCHRONISATION TERMINÉE */}
+        {syncMessage && !isSyncing && (
+          <div className="fixed bottom-6 right-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-300 border-2 border-green-400/50">
+            <div className="p-1 bg-white/20 rounded-lg">
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
+            <span className="font-bold text-lg">{syncMessage}</span>
           </div>
         )}
 
