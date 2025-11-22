@@ -413,47 +413,53 @@ export default function PromptManager() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-        
+
         {/* HEADER */}
         <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-3 rounded-2xl shadow-lg">
-                <Terminal className="w-8 h-8 text-white" />
+          <div className="flex flex-col gap-6">
+            {/* Logo et titre */}
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl blur opacity-50"></div>
+                <div className="relative bg-gradient-to-br from-indigo-500 to-purple-600 p-4 rounded-2xl shadow-lg">
+                  <Terminal className="w-8 h-8 text-white" />
+                </div>
               </div>
               <div>
-                <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                <h1 className="text-4xl font-black text-slate-900 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600">
                   Prompt Manager
                 </h1>
-                <p className="text-sm text-slate-500 mt-0.5">
+                <p className="text-sm text-slate-600 mt-1 font-medium">
                   Organisez et gérez vos prompts IA efficacement
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            {/* Actions principales */}
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
               <button
                 onClick={() => handleOpenModal()}
-                className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl active:scale-95 transition-all"
+                className="group relative flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-0.5"
               >
-                <Plus className="w-5 h-5" />
-                <span className="hidden sm:inline">Nouveau Prompt</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-xl blur opacity-30 group-hover:opacity-50 transition-opacity"></div>
+                <Plus className="w-5 h-5 relative z-10" />
+                <span className="relative z-10">Nouveau Prompt</span>
               </button>
 
-              <div className="flex gap-2">
+              <div className="flex gap-3 flex-1 sm:flex-initial">
                 <button
                   onClick={exportAllPrompts}
                   disabled={prompts.length === 0}
-                  className="flex items-center gap-2 px-4 py-3 bg-white border-2 border-indigo-200 text-indigo-700 font-semibold rounded-xl hover:bg-indigo-50 hover:border-indigo-300 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                  className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-3.5 bg-white hover:bg-gradient-to-br hover:from-indigo-50 hover:to-purple-50 border border-slate-200 hover:border-indigo-300 text-slate-700 hover:text-indigo-700 font-semibold rounded-xl shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white"
                   title="Exporter tous les prompts"
                 >
                   <Download className="w-5 h-5" />
-                  <span className="hidden md:inline">Exporter</span>
+                  <span className="hidden lg:inline">Exporter</span>
                 </button>
 
-                <label className="flex items-center gap-2 px-4 py-3 bg-white border-2 border-green-200 text-green-700 font-semibold rounded-xl hover:bg-green-50 hover:border-green-300 active:scale-95 transition-all cursor-pointer shadow-sm">
+                <label className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-3.5 bg-white hover:bg-gradient-to-br hover:from-green-50 hover:to-emerald-50 border border-slate-200 hover:border-green-300 text-slate-700 hover:text-green-700 font-semibold rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer">
                   <Upload className="w-5 h-5" />
-                  <span className="hidden md:inline">Importer</span>
+                  <span className="hidden lg:inline">Importer</span>
                   <input
                     type="file"
                     accept=".json"
@@ -465,7 +471,7 @@ export default function PromptManager() {
                 <button
                   onClick={loadExamplePrompts}
                   disabled={examplesStatus.allLoaded}
-                  className="flex items-center gap-2 px-4 py-3 bg-white border-2 border-amber-200 text-amber-700 font-semibold rounded-xl hover:bg-amber-50 hover:border-amber-300 active:scale-95 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
+                  className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-3.5 bg-white hover:bg-gradient-to-br hover:from-amber-50 hover:to-orange-50 border border-slate-200 hover:border-amber-300 text-slate-700 hover:text-amber-700 font-semibold rounded-xl shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white"
                   title={
                     examplesStatus.allLoaded
                       ? "Tous les exemples sont déjà chargés"
@@ -475,7 +481,7 @@ export default function PromptManager() {
                   }
                 >
                   <FileJson className="w-5 h-5" />
-                  <span className="hidden md:inline">
+                  <span className="hidden lg:inline">
                     Exemples {examplesStatus.existingCount > 0 && !examplesStatus.allLoaded && `(${examplesStatus.missingCount})`}
                   </span>
                 </button>
@@ -485,38 +491,46 @@ export default function PromptManager() {
 
           {/* BARRE DE RECHERCHE + TOGGLE VUE */}
           <div className="mt-6 flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative flex-1 group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
               <input
                 type="text"
                 placeholder="Rechercher par titre, contenu, catégorie ou tags..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none shadow-sm"
+                className="w-full pl-12 pr-4 py-4 bg-white/80 backdrop-blur-sm border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 hover:border-slate-300 outline-none shadow-sm hover:shadow transition-all font-medium text-slate-700 placeholder:text-slate-400"
               />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 rounded-full transition-colors"
+                >
+                  <X className="w-4 h-4 text-slate-400" />
+                </button>
+              )}
             </div>
-            
-            <div className="flex gap-2 bg-white border border-slate-200 rounded-xl p-1.5 shadow-sm">
+
+            <div className="flex gap-2 bg-white/80 backdrop-blur-sm border-2 border-slate-200 rounded-xl p-1.5 shadow-sm">
               <button
                 onClick={() => setViewMode('table')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                  viewMode === 'table' 
-                    ? 'bg-indigo-100 text-indigo-700' 
-                    : 'text-slate-600 hover:bg-slate-100'
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold transition-all duration-200 ${
+                  viewMode === 'table'
+                    ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md transform scale-105'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                 }`}
               >
-                <ListIcon className="w-4 h-4" />
+                <ListIcon className="w-5 h-5" />
                 <span className="hidden sm:inline">Table</span>
               </button>
               <button
                 onClick={() => setViewMode('grid')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                  viewMode === 'grid' 
-                    ? 'bg-indigo-100 text-indigo-700' 
-                    : 'text-slate-600 hover:bg-slate-100'
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold transition-all duration-200 ${
+                  viewMode === 'grid'
+                    ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md transform scale-105'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                 }`}
               >
-                <LayoutGrid className="w-4 h-4" />
+                <LayoutGrid className="w-5 h-5" />
                 <span className="hidden sm:inline">Grille</span>
               </button>
             </div>
@@ -525,52 +539,77 @@ export default function PromptManager() {
 
         {/* CONTENU PRINCIPAL */}
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-12 h-12 text-indigo-500 animate-spin mb-4" />
-            <p className="text-slate-500 font-medium">Chargement de vos prompts...</p>
+          <div className="flex flex-col items-center justify-center py-24">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full blur-xl opacity-30 animate-pulse"></div>
+              <Loader2 className="relative w-16 h-16 text-indigo-600 animate-spin" />
+            </div>
+            <p className="text-slate-600 font-bold text-lg mt-6">Chargement de vos prompts...</p>
+            <p className="text-slate-400 text-sm mt-2">Veuillez patienter</p>
           </div>
         ) : filteredPrompts.length === 0 ? (
-          <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-slate-200">
-            <div className="bg-slate-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Terminal className="w-10 h-10 text-slate-400" />
+          <div className="bg-gradient-to-br from-white to-slate-50 rounded-3xl p-16 text-center shadow-sm border-2 border-slate-200/50">
+            <div className="relative inline-block mb-6">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full blur-2xl opacity-20"></div>
+              <div className="relative bg-gradient-to-br from-indigo-100 to-purple-100 w-24 h-24 rounded-full flex items-center justify-center">
+                <Terminal className="w-12 h-12 text-indigo-600" />
+              </div>
             </div>
-            <h3 className="text-xl font-bold text-slate-800 mb-2">
+            <h3 className="text-3xl font-black text-slate-900 mb-3">
               {searchTerm ? "Aucun résultat trouvé" : "Aucun prompt enregistré"}
             </h3>
-            <p className="text-slate-500 mb-6">
-              {searchTerm 
-                ? "Essayez avec d'autres mots-clés" 
-                : "Créez votre premier prompt pour commencer"}
+            <p className="text-slate-600 font-medium text-lg mb-8 max-w-md mx-auto">
+              {searchTerm
+                ? "Essayez avec d'autres mots-clés ou affinez votre recherche"
+                : "Créez votre premier prompt pour commencer à organiser vos idées"}
             </p>
             {!searchTerm && (
-              <button 
+              <button
                 onClick={() => handleOpenModal()}
-                className="inline-flex items-center gap-2 px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all"
+                className="group relative inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
               >
-                <Plus className="w-5 h-5" />
-                Créer un prompt
+                <div className="absolute inset-0 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-xl blur opacity-30 group-hover:opacity-50 transition-opacity"></div>
+                <Plus className="w-6 h-6 relative z-10" />
+                <span className="relative z-10">Créer mon premier prompt</span>
               </button>
             )}
           </div>
         ) : (
           <>
             {/* STATISTIQUES RAPIDES */}
-            <div className="mb-6 flex gap-4 overflow-x-auto pb-2">
-              <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 min-w-[140px]">
-                <div className="text-3xl font-bold text-indigo-600">{prompts.length}</div>
-                <div className="text-sm text-slate-500 mt-1">Total prompts</div>
+            <div className="mb-6 grid grid-cols-3 gap-4">
+              <div className="group bg-gradient-to-br from-white to-indigo-50/30 rounded-2xl p-5 shadow-sm border-2 border-slate-200/50 hover:border-indigo-300 hover:shadow-md transition-all duration-300">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
+                    <Terminal className="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <div className="text-sm font-semibold text-slate-600">Total prompts</div>
+                </div>
+                <div className="text-4xl font-black bg-gradient-to-br from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  {prompts.length}
+                </div>
               </div>
-              <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 min-w-[140px]">
-                <div className="text-3xl font-bold text-purple-600">
+              <div className="group bg-gradient-to-br from-white to-purple-50/30 rounded-2xl p-5 shadow-sm border-2 border-slate-200/50 hover:border-purple-300 hover:shadow-md transition-all duration-300">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
+                    <Tag className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div className="text-sm font-semibold text-slate-600">Catégories</div>
+                </div>
+                <div className="text-4xl font-black bg-gradient-to-br from-purple-600 to-pink-600 bg-clip-text text-transparent">
                   {[...new Set(prompts.map(p => p.category))].length}
                 </div>
-                <div className="text-sm text-slate-500 mt-1">Catégories</div>
               </div>
-              <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 min-w-[140px]">
-                <div className="text-3xl font-bold text-blue-600">
+              <div className="group bg-gradient-to-br from-white to-blue-50/30 rounded-2xl p-5 shadow-sm border-2 border-slate-200/50 hover:border-blue-300 hover:shadow-md transition-all duration-300">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                    <Tag className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div className="text-sm font-semibold text-slate-600">Tags uniques</div>
+                </div>
+                <div className="text-4xl font-black bg-gradient-to-br from-blue-600 to-cyan-600 bg-clip-text text-transparent">
                   {[...new Set(prompts.flatMap(p => p.tags))].length}
                 </div>
-                <div className="text-sm text-slate-500 mt-1">Tags uniques</div>
               </div>
             </div>
 
@@ -671,65 +710,86 @@ export default function PromptManager() {
             {viewMode === 'grid' && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredPrompts.map((prompt) => (
-                  <div key={prompt.id} className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 hover:shadow-md transition-shadow flex flex-col h-full">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full mb-2 inline-block">
-                          {prompt.category}
-                        </span>
-                        <h3 className="font-bold text-slate-800 text-lg">{prompt.title}</h3>
+                  <div key={prompt.id} className="group bg-white rounded-2xl p-6 shadow-sm border-2 border-slate-200/50 hover:border-indigo-300 hover:shadow-xl transition-all duration-300 flex flex-col h-full transform hover:-translate-y-1">
+                    {/* Header de la carte */}
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-xs font-bold text-indigo-600 bg-gradient-to-br from-indigo-50 to-purple-50 px-3 py-1.5 rounded-full border border-indigo-200">
+                            {prompt.category}
+                          </span>
+                        </div>
+                        <h3 className="font-black text-slate-900 text-xl leading-tight group-hover:text-indigo-700 transition-colors">
+                          {prompt.title}
+                        </h3>
                       </div>
+                    </div>
+
+                    {/* Contenu */}
+                    <div className="flex-grow mb-4 relative">
+                      <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-all duration-200 z-10">
+                         <button
+                            onClick={() => copyToClipboard(prompt.content)}
+                            className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-2.5 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-110 transition-all"
+                            title="Copier le contenu"
+                         >
+                           <Copy className="w-4 h-4" />
+                         </button>
+                      </div>
+                      <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 p-4 rounded-xl border-2 border-slate-200/50 h-36 overflow-y-auto">
+                        <p className="text-sm text-slate-700 font-mono leading-relaxed">
+                          {prompt.content}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Tags */}
+                    {prompt.tags && prompt.tags.length > 0 && (
+                      <div className="flex items-center gap-2 mb-4 overflow-hidden">
+                        <Tag className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                        <div className="flex gap-2 overflow-x-auto scrollbar-none">
+                          {prompt.tags?.slice(0, 4).map((tag, i) => (
+                            <span key={i} className="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md whitespace-nowrap">
+                              #{tag}
+                            </span>
+                          ))}
+                          {prompt.tags?.length > 4 && (
+                            <span className="text-xs font-semibold bg-slate-200 text-slate-600 px-2.5 py-1 rounded-md whitespace-nowrap">
+                              +{prompt.tags.length - 4}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Footer avec actions */}
+                    <div className="flex items-center justify-between pt-4 border-t-2 border-slate-100 mt-auto">
+                      <span className="text-xs font-medium text-slate-500">
+                        {formatDate(prompt.updatedAt)}
+                      </span>
                       <div className="flex gap-1">
                         <button
                           onClick={() => exportSinglePrompt(prompt)}
-                          className="p-1.5 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded transition-colors"
-                          title="Exporter ce prompt"
+                          className="p-2 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all hover:scale-110"
+                          title="Exporter"
                         >
                           <Download className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleOpenModal(prompt)}
-                          className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                          className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all hover:scale-110"
+                          title="Modifier"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(prompt.id)}
-                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all hover:scale-110"
+                          title="Supprimer"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
-                    </div>
-                    
-                    <div className="flex-grow mb-4 relative group/copy">
-                      <div className="absolute top-2 right-2 opacity-0 group-hover/copy:opacity-100 transition-opacity">
-                         <button 
-                            onClick={() => copyToClipboard(prompt.content)}
-                            className="bg-white/90 backdrop-blur text-indigo-600 p-1.5 rounded-md shadow-sm border border-slate-200 hover:bg-indigo-50"
-                         >
-                           <Copy className="w-4 h-4" />
-                         </button>
-                      </div>
-                      <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100 font-mono h-32 overflow-y-auto scrollbar-thin">
-                        {prompt.content}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-auto">
-                      <div className="flex items-center gap-2 overflow-hidden">
-                        <Tag className="w-3 h-3 text-slate-400 flex-shrink-0" />
-                        <div className="flex gap-1 overflow-x-auto scrollbar-none">
-                          {prompt.tags?.map((tag, i) => (
-                            <span key={i} className="text-xs text-slate-500 whitespace-nowrap">
-                              #{tag}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <span className="text-xs text-slate-400 whitespace-nowrap ml-2">
-                        {formatDate(prompt.updatedAt)}
-                      </span>
                     </div>
                   </div>
                 ))}
@@ -740,36 +800,44 @@ export default function PromptManager() {
 
         {/* MODAL Formulaire */}
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm transition-opacity">
-            <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-              <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                  {editingPrompt ? <Edit2 className="w-5 h-5 text-amber-500" /> : <Plus className="w-5 h-5 text-indigo-500" />}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md transition-all animate-in fade-in duration-200">
+            <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border-2 border-slate-200/50 animate-in zoom-in-95 duration-200">
+              <div className="p-6 border-b-2 border-slate-100 flex justify-between items-center bg-gradient-to-br from-slate-50 to-white">
+                <h2 className="text-2xl font-black text-slate-900 flex items-center gap-3">
+                  <div className={`p-2.5 rounded-xl ${editingPrompt ? 'bg-amber-100' : 'bg-indigo-100'}`}>
+                    {editingPrompt ? <Edit2 className="w-6 h-6 text-amber-600" /> : <Plus className="w-6 h-6 text-indigo-600" />}
+                  </div>
                   {editingPrompt ? 'Modifier le prompt' : 'Créer un nouveau prompt'}
                 </h2>
-                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 hover:bg-slate-200 p-2 rounded-full transition-colors">
-                  <X className="w-5 h-5" />
+                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-700 hover:bg-slate-200 p-2.5 rounded-xl transition-all hover:scale-110">
+                  <X className="w-6 h-6" />
                 </button>
               </div>
               
-              <div className="p-6 space-y-4 overflow-y-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-sm font-semibold text-slate-700">Titre</label>
+              <div className="p-6 space-y-5 overflow-y-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                      <Terminal className="w-4 h-4 text-indigo-600" />
+                      Titre
+                    </label>
                     <input
                       type="text"
                       value={formData.title}
                       onChange={(e) => setFormData({...formData, title: e.target.value})}
                       placeholder="Ex: Traducteur Python vers JS"
-                      className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                      className="w-full p-3.5 bg-white border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 hover:border-slate-300 outline-none transition-all font-medium"
                     />
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-sm font-semibold text-slate-700">Catégorie</label>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                      <Tag className="w-4 h-4 text-purple-600" />
+                      Catégorie
+                    </label>
                     <select
                       value={formData.category}
                       onChange={(e) => setFormData({...formData, category: e.target.value})}
-                      className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                      className="w-full p-3.5 bg-white border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 hover:border-slate-300 outline-none transition-all font-medium"
                     >
                       <option value="Général">Général</option>
                       <option value="Code">Code & Dev</option>
@@ -781,20 +849,20 @@ export default function PromptManager() {
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-sm font-semibold text-slate-700">Contenu du Prompt</label>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-700">Contenu du Prompt</label>
                   <textarea
                     value={formData.content}
                     onChange={(e) => setFormData({...formData, content: e.target.value})}
                     placeholder="Écrivez votre prompt ici..."
-                    rows={8}
-                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none font-mono text-sm resize-none"
+                    rows={10}
+                    className="w-full p-4 bg-gradient-to-br from-slate-50 to-slate-100/50 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 hover:border-slate-300 outline-none font-mono text-sm resize-none transition-all"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                    <Tag className="w-4 h-4" />
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                    <Tag className="w-4 h-4 text-blue-600" />
                     Tags (séparés par des virgules)
                   </label>
                   <input
@@ -802,24 +870,24 @@ export default function PromptManager() {
                     value={formData.tagsInput}
                     onChange={(e) => setFormData({...formData, tagsInput: e.target.value})}
                     placeholder="python, javascript, tutoriel..."
-                    className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                    className="w-full p-3.5 bg-white border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 hover:border-slate-300 outline-none transition-all font-medium"
                   />
                 </div>
               </div>
 
-              <div className="p-5 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
-                <button 
+              <div className="p-6 border-t-2 border-slate-100 bg-gradient-to-br from-slate-50 to-white flex justify-end gap-3">
+                <button
                   onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2.5 text-slate-600 font-medium hover:bg-slate-200 rounded-xl transition-colors"
+                  className="px-6 py-3 text-slate-700 font-bold hover:bg-slate-200 rounded-xl transition-all hover:scale-105"
                 >
                   Annuler
                 </button>
-                <button 
+                <button
                   onClick={handleSave}
                   disabled={!formData.title || !formData.content}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl shadow-md hover:shadow-lg active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
-                  <Save className="w-4 h-4" />
+                  <Save className="w-5 h-5" />
                   Enregistrer
                 </button>
               </div>
@@ -829,9 +897,11 @@ export default function PromptManager() {
 
         {/* NOTIFICATION DE COPIE */}
         {copiedId && (
-          <div className="fixed bottom-6 right-6 bg-green-500 text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 animate-slide-up">
-            <CheckCircle2 className="w-5 h-5" />
-            <span className="font-medium">Copié dans le presse-papiers !</span>
+          <div className="fixed bottom-6 right-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-300 border-2 border-green-400/50">
+            <div className="p-1 bg-white/20 rounded-lg">
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
+            <span className="font-bold text-lg">Copié dans le presse-papiers !</span>
           </div>
         )}
 
