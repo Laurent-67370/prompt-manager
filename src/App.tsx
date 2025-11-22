@@ -266,16 +266,56 @@ export default function PromptManager() {
   };
 
   const handleSave = async () => {
-    if (!user) return;
     if (!formData.title.trim() || !formData.content.trim()) return;
 
     const tags = formData.tagsInput.split(',').map(t => t.trim()).filter(t => t !== '');
+    const now = Timestamp.now();
 
     try {
+      // MODE OFFLINE ou Firebase non configuré : sauvegarder localement
+      if (!isOnline || !isFirebaseConfigured || !user) {
+        if (editingPrompt) {
+          // Mise à jour locale
+          const updatedPrompts = prompts.map(p =>
+            p.id === editingPrompt.id
+              ? {
+                  ...p,
+                  title: formData.title,
+                  content: formData.content,
+                  category: formData.category,
+                  tags: tags,
+                  updatedAt: now
+                }
+              : p
+          );
+          setPrompts(updatedPrompts);
+          saveToLocalStorage(updatedPrompts);
+          console.log('💾 Prompt mis à jour localement (offline)');
+        } else {
+          // Création locale avec ID temporaire
+          const newPrompt: PromptData = {
+            id: `offline-${Date.now()}`,
+            title: formData.title,
+            content: formData.content,
+            category: formData.category,
+            tags: tags,
+            createdAt: now,
+            updatedAt: now
+          };
+          const updatedPrompts = [newPrompt, ...prompts];
+          setPrompts(updatedPrompts);
+          saveToLocalStorage(updatedPrompts);
+          console.log('💾 Nouveau prompt créé localement (offline)');
+        }
+        setIsModalOpen(false);
+        return;
+      }
+
+      // MODE ONLINE avec Firebase : sauvegarder sur Firebase
       const collectionRef = collection(db, 'artifacts', appId, 'users', user.uid, 'prompts');
 
       if (editingPrompt) {
-        // Mise à jour
+        // Mise à jour Firebase
         const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'prompts', editingPrompt.id);
         await updateDoc(docRef, {
           title: formData.title,
@@ -284,8 +324,9 @@ export default function PromptManager() {
           tags: tags,
           updatedAt: serverTimestamp()
         });
+        console.log('☁️ Prompt mis à jour sur Firebase');
       } else {
-        // Création
+        // Création Firebase
         await addDoc(collectionRef, {
           title: formData.title,
           content: formData.content,
@@ -294,22 +335,35 @@ export default function PromptManager() {
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
+        console.log('☁️ Nouveau prompt créé sur Firebase');
       }
       setIsModalOpen(false);
     } catch (error) {
       console.error("Erreur lors de la sauvegarde:", error);
+      alert("Erreur lors de la sauvegarde. Le prompt a été sauvegardé localement.");
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!user) return;
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce prompt ?")) {
-      try {
-        const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'prompts', id);
-        await deleteDoc(docRef);
-      } catch (error) {
-        console.error("Erreur lors de la suppression:", error);
+    if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce prompt ?")) return;
+
+    try {
+      // MODE OFFLINE ou Firebase non configuré : supprimer localement
+      if (!isOnline || !isFirebaseConfigured || !user) {
+        const updatedPrompts = prompts.filter(p => p.id !== id);
+        setPrompts(updatedPrompts);
+        saveToLocalStorage(updatedPrompts);
+        console.log('💾 Prompt supprimé localement (offline)');
+        return;
       }
+
+      // MODE ONLINE avec Firebase : supprimer de Firebase
+      const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'prompts', id);
+      await deleteDoc(docRef);
+      console.log('☁️ Prompt supprimé de Firebase');
+    } catch (error) {
+      console.error("Erreur lors de la suppression:", error);
+      alert("Erreur lors de la suppression du prompt.");
     }
   };
 
@@ -571,14 +625,14 @@ export default function PromptManager() {
                 {!isFirebaseConfigured ? (
                   <div className="flex items-center gap-2 px-4 py-3 bg-blue-50 border-2 border-blue-300 text-blue-700 font-semibold rounded-xl shadow-sm">
                     <WifiOff className="w-5 h-5" />
-                    <span className="hidden md:inline">Mode demo (sans sync)</span>
+                    <span className="hidden md:inline">Local uniquement</span>
                   </div>
-                ) : !isOnline && (
+                ) : !isOnline ? (
                   <div className="flex items-center gap-2 px-4 py-3 bg-amber-50 border-2 border-amber-300 text-amber-700 font-semibold rounded-xl shadow-sm">
                     <WifiOff className="w-5 h-5" />
-                    <span className="hidden md:inline">Mode hors ligne</span>
+                    <span className="hidden md:inline">Mode local</span>
                   </div>
-                )}
+                ) : null}
 
                 {/* Bouton d'aide */}
                 <button
@@ -596,9 +650,8 @@ export default function PromptManager() {
             <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
               <button
                 onClick={() => handleOpenModal()}
-                disabled={!isOnline || !isFirebaseConfigured}
-                className="group relative flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:transform-none"
-                title={!isFirebaseConfigured ? "Firebase non configuré - Mode démo uniquement" : !isOnline ? "Connexion requise pour créer un prompt" : "Créer un nouveau prompt"}
+                className="group relative flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-0.5"
+                title="Créer un nouveau prompt"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-xl blur opacity-30 group-hover:opacity-50 transition-opacity"></div>
                 <Plus className="w-5 h-5 relative z-10" />
@@ -722,11 +775,16 @@ export default function PromptManager() {
             <h3 className="text-3xl font-black text-slate-900 mb-3">
               {searchTerm ? "Aucun résultat trouvé" : "Aucun prompt enregistré"}
             </h3>
-            <p className="text-slate-600 font-medium text-lg mb-8 max-w-md mx-auto">
+            <p className="text-slate-600 font-medium text-lg mb-4 max-w-md mx-auto">
               {searchTerm
                 ? "Essayez avec d'autres mots-clés ou affinez votre recherche"
                 : "Créez votre premier prompt pour commencer à organiser vos idées"}
             </p>
+            {!searchTerm && (!isOnline || !isFirebaseConfigured) && (
+              <p className="text-slate-500 text-sm mb-8 max-w-md mx-auto">
+                💾 Vos prompts seront sauvegardés localement sur cet appareil
+              </p>
+            )}
             {!searchTerm && (
               <button
                 onClick={() => handleOpenModal()}
