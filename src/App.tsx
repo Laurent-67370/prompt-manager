@@ -35,7 +35,8 @@ import {
   HelpCircle,
   Zap,
   BookOpen,
-  Sparkles
+  Sparkles,
+  WifiOff
 } from 'lucide-react';
 
 // --- TYPES ---
@@ -57,12 +58,13 @@ export default function PromptManager() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
-  
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
   // État du formulaire (Modal)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPrompt, setEditingPrompt] = useState<PromptData | null>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
-  
+
   // Champs du formulaire
   const [formData, setFormData] = useState({
     title: '',
@@ -73,6 +75,61 @@ export default function PromptManager() {
 
   // État de la copie
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // Clé pour le localStorage
+  const STORAGE_KEY = 'prompt-manager-cache';
+
+  // --- DÉTECTION ONLINE/OFFLINE ---
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log('🌐 Connexion rétablie');
+      setIsOnline(true);
+    };
+    const handleOffline = () => {
+      console.log('📴 Mode hors ligne');
+      setIsOnline(false);
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // --- CACHE LOCAL ---
+  const saveToLocalStorage = (data: PromptData[]) => {
+    try {
+      const serialized = JSON.stringify(data.map(p => ({
+        ...p,
+        createdAt: p.createdAt?.toMillis(),
+        updatedAt: p.updatedAt?.toMillis()
+      })));
+      localStorage.setItem(STORAGE_KEY, serialized);
+      console.log('💾 Prompts sauvegardés en cache local');
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde en cache:', error);
+    }
+  };
+
+  const loadFromLocalStorage = (): PromptData[] | null => {
+    try {
+      const cached = localStorage.getItem(STORAGE_KEY);
+      if (!cached) return null;
+
+      const parsed = JSON.parse(cached);
+      return parsed.map((p: any) => ({
+        ...p,
+        createdAt: p.createdAt ? Timestamp.fromMillis(p.createdAt) : null,
+        updatedAt: p.updatedAt ? Timestamp.fromMillis(p.updatedAt) : null
+      }));
+    } catch (error) {
+      console.error('Erreur lors du chargement du cache:', error);
+      return null;
+    }
+  };
 
   // --- AUTHENTIFICATION ---
   useEffect(() => {
@@ -91,11 +148,31 @@ export default function PromptManager() {
     return () => unsubscribe();
   }, []);
 
-  // --- CHARGEMENT DES DONNÉES (FIRESTORE) ---
+  // --- CHARGEMENT DES DONNÉES (FIRESTORE + CACHE) ---
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
 
-    // Utilisation du chemin privé utilisateur : /artifacts/{appId}/users/{userId}/prompts
+    // Charger depuis le cache en premier
+    const cachedPrompts = loadFromLocalStorage();
+    if (cachedPrompts && cachedPrompts.length > 0) {
+      console.log('📦 Chargement depuis le cache local');
+      setPrompts(cachedPrompts);
+      setIsLoading(false);
+    }
+
+    // Si offline, utiliser uniquement le cache
+    if (!isOnline) {
+      console.log('📴 Mode hors ligne - Utilisation du cache uniquement');
+      if (!cachedPrompts || cachedPrompts.length === 0) {
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    // Si online, s'abonner à Firebase
     const collectionRef = collection(db, 'artifacts', appId, 'users', user.uid, 'prompts');
 
     const unsubscribe = onSnapshot(collectionRef, (snapshot) => {
@@ -113,14 +190,20 @@ export default function PromptManager() {
       });
 
       setPrompts(loadedPrompts);
+      saveToLocalStorage(loadedPrompts);
       setIsLoading(false);
     }, (error) => {
       console.error("Erreur lors du chargement des prompts:", error);
+      // En cas d'erreur, utiliser le cache
+      if (cachedPrompts) {
+        console.log('⚠️ Erreur Firebase - Utilisation du cache');
+        setPrompts(cachedPrompts);
+      }
       setIsLoading(false);
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, isOnline]);
 
   // --- GESTIONNAIRES D'ACTIONS ---
 
@@ -441,22 +524,34 @@ export default function PromptManager() {
                 </div>
               </div>
 
-              {/* Bouton d'aide */}
-              <button
-                onClick={() => setIsHelpOpen(true)}
-                className="group relative flex items-center gap-2 px-4 py-3 bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-cyan-50 border border-slate-200 hover:border-blue-300 text-slate-700 hover:text-blue-700 font-semibold rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
-                title="Aide et documentation"
-              >
-                <HelpCircle className="w-5 h-5" />
-                <span className="hidden md:inline">Aide</span>
-              </button>
+              <div className="flex items-center gap-3">
+                {/* Indicateur Online/Offline */}
+                {!isOnline && (
+                  <div className="flex items-center gap-2 px-4 py-3 bg-amber-50 border-2 border-amber-300 text-amber-700 font-semibold rounded-xl shadow-sm">
+                    <WifiOff className="w-5 h-5" />
+                    <span className="hidden md:inline">Mode hors ligne</span>
+                  </div>
+                )}
+
+                {/* Bouton d'aide */}
+                <button
+                  onClick={() => setIsHelpOpen(true)}
+                  className="group relative flex items-center gap-2 px-4 py-3 bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-cyan-50 border border-slate-200 hover:border-blue-300 text-slate-700 hover:text-blue-700 font-semibold rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
+                  title="Aide et documentation"
+                >
+                  <HelpCircle className="w-5 h-5" />
+                  <span className="hidden md:inline">Aide</span>
+                </button>
+              </div>
             </div>
 
             {/* Actions principales */}
             <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
               <button
                 onClick={() => handleOpenModal()}
-                className="group relative flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-0.5"
+                disabled={!isOnline}
+                className="group relative flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:transform-none"
+                title={!isOnline ? "Connexion requise pour créer un prompt" : "Créer un nouveau prompt"}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-xl blur opacity-30 group-hover:opacity-50 transition-opacity"></div>
                 <Plus className="w-5 h-5 relative z-10" />
@@ -474,7 +569,7 @@ export default function PromptManager() {
                   <span className="hidden lg:inline">Exporter</span>
                 </button>
 
-                <label className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-3.5 bg-white hover:bg-gradient-to-br hover:from-green-50 hover:to-emerald-50 border border-slate-200 hover:border-green-300 text-slate-700 hover:text-green-700 font-semibold rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer">
+                <label className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-3.5 bg-white hover:bg-gradient-to-br hover:from-green-50 hover:to-emerald-50 border border-slate-200 hover:border-green-300 text-slate-700 hover:text-green-700 font-semibold rounded-xl shadow-sm hover:shadow-md transition-all duration-200 ${!isOnline ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}>
                   <Upload className="w-5 h-5" />
                   <span className="hidden lg:inline">Importer</span>
                   <input
@@ -482,15 +577,18 @@ export default function PromptManager() {
                     accept=".json"
                     onChange={importPrompts}
                     className="hidden"
+                    disabled={!isOnline}
                   />
                 </label>
 
                 <button
                   onClick={loadExamplePrompts}
-                  disabled={examplesStatus.allLoaded}
+                  disabled={examplesStatus.allLoaded || !isOnline}
                   className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-3.5 bg-white hover:bg-gradient-to-br hover:from-amber-50 hover:to-orange-50 border border-slate-200 hover:border-amber-300 text-slate-700 hover:text-amber-700 font-semibold rounded-xl shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white"
                   title={
-                    examplesStatus.allLoaded
+                    !isOnline
+                      ? "Connexion requise pour charger les exemples"
+                      : examplesStatus.allLoaded
                       ? "Tous les exemples sont déjà chargés"
                       : examplesStatus.existingCount > 0
                       ? `${examplesStatus.missingCount} exemple(s) manquant(s) à charger`
