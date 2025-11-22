@@ -14,6 +14,7 @@ Application React moderne pour organiser et gérer vos prompts IA avec Firebase.
 - 🎨 **Design moderne** : Interface premium avec glassmorphism, gradients et micro-animations
 - 💡 **Aide intégrée** : Guide d'utilisation complet accessible en un clic
 - 📊 **Statistiques en temps réel** : Visualisez vos prompts, catégories et tags
+- 📱 **Progressive Web App (PWA)** : Installez l'app sur votre appareil et utilisez-la offline
 - 🔐 **Sécurisé** : Authentification Firebase et données privées
 - 📱 **Responsive** : Design adapté mobile, tablette et desktop
 
@@ -166,6 +167,73 @@ Le guide comprend :
 - 💡 **Astuces et raccourcis** : Optimisez votre utilisation de l'application
 
 **Accès rapide** : Cliquez sur le bouton "Aide" en haut à droite de l'écran à tout moment.
+
+## 📱 Progressive Web App (PWA)
+
+Prompt Manager est une **Progressive Web App** complète ! Vous pouvez l'installer sur n'importe quel appareil et l'utiliser comme une application native.
+
+### ✨ Avantages de la PWA
+
+- 📲 **Installation facile** : Installez l'app en un clic depuis votre navigateur
+- 🚀 **Lancement rapide** : Icône sur votre écran d'accueil comme une app native
+- 📴 **Mode offline** : Continuez à consulter vos prompts sans connexion internet
+- 💾 **Cache intelligent** : Les données sont mises en cache pour un chargement ultra-rapide
+- 🔄 **Mises à jour automatiques** : L'app se met à jour automatiquement en arrière-plan
+- 📱 **Expérience native** : Pas de barre d'adresse, plein écran sur mobile
+
+### 📥 Installation
+
+#### Sur Desktop (Chrome, Edge, Brave)
+1. Visitez l'application dans votre navigateur
+2. Cliquez sur l'icône d'installation (➕) dans la barre d'adresse
+3. Ou allez dans Menu > "Installer Prompt Manager"
+4. Cliquez sur "Installer"
+5. L'app s'ouvre comme une application native !
+
+#### Sur Mobile (iOS Safari)
+1. Ouvrez l'app dans Safari
+2. Appuyez sur le bouton Partager (📤)
+3. Sélectionnez "Sur l'écran d'accueil"
+4. Appuyez sur "Ajouter"
+5. L'icône apparaît sur votre écran d'accueil
+
+#### Sur Mobile (Android Chrome)
+1. Ouvrez l'app dans Chrome
+2. Appuyez sur le menu (⋮)
+3. Sélectionnez "Installer l'application"
+4. Ou cliquez sur la bannière d'installation qui apparaît
+5. Appuyez sur "Installer"
+
+### 🎨 Génération des Icônes PWA
+
+Les icônes PWA doivent être générées avant le déploiement :
+
+```bash
+# Option 1: ImageMagick
+convert -background none public/icon.svg -resize 192x192 public/icon-192.png
+convert -background none public/icon.svg -resize 512x512 public/icon-512.png
+
+# Option 2: En ligne
+# Utilisez https://convertio.co/svg-png/
+# Uploadez public/icon.svg et convertissez aux tailles 192x192 et 512x512
+```
+
+Consultez `public/ICONS_README.md` pour plus de détails.
+
+### ⚙️ Configuration PWA
+
+L'application utilise :
+- **manifest.json** : Configuration de l'app (nom, icônes, couleurs, etc.)
+- **Service Worker (sw.js)** : Gestion du cache et mode offline
+- **Cache Strategy** : Cache-first pour les assets, network-first pour Firebase
+
+### 🔧 Fonctionnalités Offline
+
+Avec le Service Worker, l'application fonctionne partiellement hors ligne :
+- ✅ Interface utilisateur entièrement accessible
+- ✅ Consultation des prompts en cache
+- ✅ Recherche dans les prompts en cache
+- ⚠️ Création/modification nécessite une connexion (Firebase)
 
 ## 🔐 Sécurité
 

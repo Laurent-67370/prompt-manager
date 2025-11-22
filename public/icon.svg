@@ -1,0 +1,30 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#a855f7;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="120" fill="url(#gradient)"/>
+
+  <!-- Terminal icon -->
+  <g transform="translate(100, 100)">
+    <!-- Terminal window -->
+    <rect x="20" y="40" width="280" height="240" rx="20" fill="white" opacity="0.2"/>
+
+    <!-- Prompt symbol > -->
+    <text x="60" y="140" font-family="monospace" font-size="80" font-weight="bold" fill="white">&gt;</text>
+
+    <!-- Cursor -->
+    <rect x="140" y="100" width="20" height="60" fill="white" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;0.2;0.8" dur="1.5s" repeatCount="indefinite"/>
+    </rect>
+
+    <!-- Code lines decoration -->
+    <rect x="60" y="200" width="200" height="8" rx="4" fill="white" opacity="0.6"/>
+    <rect x="60" y="230" width="150" height="8" rx="4" fill="white" opacity="0.4"/>
+  </g>
+</svg>
