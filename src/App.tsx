@@ -46,8 +46,8 @@ interface PromptData {
   content: string;
   category: string;
   tags: string[];
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: Timestamp | null;
+  updatedAt: Timestamp | null;
 }
 
 // --- COMPOSANTS ---
@@ -117,16 +117,34 @@ export default function PromptManager() {
   const loadFromLocalStorage = (): PromptData[] | null => {
     try {
       const cached = localStorage.getItem(STORAGE_KEY);
-      if (!cached) return null;
+      if (!cached) {
+        console.log('📦 Aucun cache local trouvé');
+        return null;
+      }
 
       const parsed = JSON.parse(cached);
-      return parsed.map((p: any) => ({
+      if (!Array.isArray(parsed)) {
+        console.error('❌ Cache corrompu : pas un tableau');
+        localStorage.removeItem(STORAGE_KEY);
+        return null;
+      }
+
+      const prompts = parsed.map((p: any) => ({
         ...p,
         createdAt: p.createdAt ? Timestamp.fromMillis(p.createdAt) : null,
         updatedAt: p.updatedAt ? Timestamp.fromMillis(p.updatedAt) : null
       }));
+
+      console.log(`📦 ${prompts.length} prompt(s) chargé(s) depuis le cache`);
+      return prompts;
     } catch (error) {
-      console.error('Erreur lors du chargement du cache:', error);
+      console.error('❌ Erreur lors du chargement du cache:', error);
+      // Supprimer le cache corrompu
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch (e) {
+        console.error('Impossible de supprimer le cache:', e);
+      }
       return null;
     }
   };
@@ -135,16 +153,26 @@ export default function PromptManager() {
   useEffect(() => {
     const initAuth = async () => {
       try {
+        console.log('🔐 Initialisation de l\'authentification Firebase...');
         await signInAnonymously(auth);
+        console.log('✅ Authentification réussie');
       } catch (error) {
-        console.error("Erreur d'authentification:", error);
+        console.error("❌ Erreur d'authentification Firebase:", error);
+        // Continuer quand même pour permettre l'accès aux fonctionnalités offline
       }
     };
+
     initAuth();
 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        console.log('👤 Utilisateur connecté:', currentUser.uid);
+      } else {
+        console.log('👤 Aucun utilisateur connecté');
+      }
       setUser(currentUser);
     });
+
     return () => unsubscribe();
   }, []);
 
@@ -297,8 +325,8 @@ export default function PromptManager() {
         content: prompt.content,
         category: prompt.category,
         tags: prompt.tags,
-        createdAt: prompt.createdAt?.toDate().toISOString(),
-        updatedAt: prompt.updatedAt?.toDate().toISOString()
+        createdAt: prompt.createdAt ? prompt.createdAt.toDate().toISOString() : null,
+        updatedAt: prompt.updatedAt ? prompt.updatedAt.toDate().toISOString() : null
       }));
 
       const dataStr = JSON.stringify(exportData, null, 2);
@@ -328,8 +356,8 @@ export default function PromptManager() {
         content: prompt.content,
         category: prompt.category,
         tags: prompt.tags,
-        createdAt: prompt.createdAt?.toDate().toISOString(),
-        updatedAt: prompt.updatedAt?.toDate().toISOString()
+        createdAt: prompt.createdAt ? prompt.createdAt.toDate().toISOString() : null,
+        updatedAt: prompt.updatedAt ? prompt.updatedAt.toDate().toISOString() : null
       };
 
       const dataStr = JSON.stringify(exportData, null, 2);
@@ -484,16 +512,21 @@ export default function PromptManager() {
   }, [prompts, searchTerm]);
 
   // --- UTILITAIRES ---
-  const formatDate = (timestamp: Timestamp | undefined) => {
+  const formatDate = (timestamp: Timestamp | null | undefined) => {
     if (!timestamp) return "Pas de date";
-    const date = timestamp.toDate();
-    return new Intl.DateTimeFormat('fr-FR', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
+    try {
+      const date = timestamp.toDate();
+      return new Intl.DateTimeFormat('fr-FR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(date);
+    } catch (error) {
+      console.error('Erreur lors du formatage de la date:', error);
+      return "Date invalide";
+    }
   };
 
   // --- AFFICHAGE ---
