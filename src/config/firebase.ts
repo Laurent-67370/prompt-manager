@@ -11,7 +11,30 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-export const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+// Vérifier si Firebase est configuré
+export const isFirebaseConfigured = !!(
+  firebaseConfig.apiKey &&
+  firebaseConfig.authDomain &&
+  firebaseConfig.projectId
+);
+
+// Initialiser Firebase seulement si configuré
+let app: any = null;
+let auth: any = null;
+let db: any = null;
+
+if (isFirebaseConfigured) {
+  try {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    console.log('✅ Firebase initialisé avec succès');
+  } catch (error) {
+    console.error('❌ Erreur lors de l\'initialisation de Firebase:', error);
+  }
+} else {
+  console.warn('⚠️ Firebase non configuré - Mode offline uniquement');
+}
+
+export { app, auth, db };
 export const appId = import.meta.env.VITE_APP_ID || 'default-app-id';

@@ -1,19 +1,19 @@
 import { useState, useEffect, useMemo } from 'react';
-import { auth, db, appId } from './config/firebase';
-import { 
-  onAuthStateChanged, 
+import { auth, db, appId, isFirebaseConfigured } from './config/firebase';
+import {
+  onAuthStateChanged,
   signInAnonymously,
-  User 
+  User
 } from 'firebase/auth';
-import { 
-  collection, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  doc, 
-  onSnapshot, 
-  serverTimestamp, 
-  Timestamp 
+import {
+  collection,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  serverTimestamp,
+  Timestamp
 } from 'firebase/firestore';
 import {
   Plus,
@@ -151,6 +151,12 @@ export default function PromptManager() {
 
   // --- AUTHENTIFICATION ---
   useEffect(() => {
+    if (!isFirebaseConfigured) {
+      console.warn('⚠️ Firebase non configuré - Utilisation en mode offline uniquement');
+      setIsLoading(false);
+      return;
+    }
+
     const initAuth = async () => {
       try {
         console.log('🔐 Initialisation de l\'authentification Firebase...');
@@ -158,6 +164,7 @@ export default function PromptManager() {
         console.log('✅ Authentification réussie');
       } catch (error) {
         console.error("❌ Erreur d'authentification Firebase:", error);
+        setIsLoading(false);
         // Continuer quand même pour permettre l'accès aux fonctionnalités offline
       }
     };
@@ -178,29 +185,31 @@ export default function PromptManager() {
 
   // --- CHARGEMENT DES DONNÉES (FIRESTORE + CACHE) ---
   useEffect(() => {
-    if (!user) {
-      setIsLoading(false);
-      return;
-    }
-
-    // Charger depuis le cache en premier
+    // Charger depuis le cache en premier (toujours, même sans Firebase)
     const cachedPrompts = loadFromLocalStorage();
     if (cachedPrompts && cachedPrompts.length > 0) {
       console.log('📦 Chargement depuis le cache local');
       setPrompts(cachedPrompts);
       setIsLoading(false);
+    } else {
+      setIsLoading(false);
+    }
+
+    // Si Firebase n'est pas configuré, rester en mode offline uniquement
+    if (!isFirebaseConfigured || !user) {
+      if (!isFirebaseConfigured) {
+        console.log('📴 Firebase non configuré - Mode offline uniquement');
+      }
+      return;
     }
 
     // Si offline, utiliser uniquement le cache
     if (!isOnline) {
       console.log('📴 Mode hors ligne - Utilisation du cache uniquement');
-      if (!cachedPrompts || cachedPrompts.length === 0) {
-        setIsLoading(false);
-      }
       return;
     }
 
-    // Si online, s'abonner à Firebase
+    // Si online et Firebase configuré, s'abonner à Firebase
     const collectionRef = collection(db, 'artifacts', appId, 'users', user.uid, 'prompts');
 
     const unsubscribe = onSnapshot(collectionRef, (snapshot) => {
@@ -558,8 +567,13 @@ export default function PromptManager() {
               </div>
 
               <div className="flex items-center gap-3">
-                {/* Indicateur Online/Offline */}
-                {!isOnline && (
+                {/* Indicateur Firebase/Online/Offline */}
+                {!isFirebaseConfigured ? (
+                  <div className="flex items-center gap-2 px-4 py-3 bg-blue-50 border-2 border-blue-300 text-blue-700 font-semibold rounded-xl shadow-sm">
+                    <WifiOff className="w-5 h-5" />
+                    <span className="hidden md:inline">Mode demo (sans sync)</span>
+                  </div>
+                ) : !isOnline && (
                   <div className="flex items-center gap-2 px-4 py-3 bg-amber-50 border-2 border-amber-300 text-amber-700 font-semibold rounded-xl shadow-sm">
                     <WifiOff className="w-5 h-5" />
                     <span className="hidden md:inline">Mode hors ligne</span>
@@ -582,9 +596,9 @@ export default function PromptManager() {
             <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
               <button
                 onClick={() => handleOpenModal()}
-                disabled={!isOnline}
+                disabled={!isOnline || !isFirebaseConfigured}
                 className="group relative flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:transform-none"
-                title={!isOnline ? "Connexion requise pour créer un prompt" : "Créer un nouveau prompt"}
+                title={!isFirebaseConfigured ? "Firebase non configuré - Mode démo uniquement" : !isOnline ? "Connexion requise pour créer un prompt" : "Créer un nouveau prompt"}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-xl blur opacity-30 group-hover:opacity-50 transition-opacity"></div>
                 <Plus className="w-5 h-5 relative z-10" />
@@ -602,7 +616,7 @@ export default function PromptManager() {
                   <span className="hidden lg:inline">Exporter</span>
                 </button>
 
-                <label className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-3.5 bg-white hover:bg-gradient-to-br hover:from-green-50 hover:to-emerald-50 border border-slate-200 hover:border-green-300 text-slate-700 hover:text-green-700 font-semibold rounded-xl shadow-sm hover:shadow-md transition-all duration-200 ${!isOnline ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}>
+                <label className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-3.5 bg-white hover:bg-gradient-to-br hover:from-green-50 hover:to-emerald-50 border border-slate-200 hover:border-green-300 text-slate-700 hover:text-green-700 font-semibold rounded-xl shadow-sm hover:shadow-md transition-all duration-200 ${!isOnline || !isFirebaseConfigured ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}>
                   <Upload className="w-5 h-5" />
                   <span className="hidden lg:inline">Importer</span>
                   <input
@@ -610,16 +624,18 @@ export default function PromptManager() {
                     accept=".json"
                     onChange={importPrompts}
                     className="hidden"
-                    disabled={!isOnline}
+                    disabled={!isOnline || !isFirebaseConfigured}
                   />
                 </label>
 
                 <button
                   onClick={loadExamplePrompts}
-                  disabled={examplesStatus.allLoaded || !isOnline}
+                  disabled={examplesStatus.allLoaded || !isOnline || !isFirebaseConfigured}
                   className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-3.5 bg-white hover:bg-gradient-to-br hover:from-amber-50 hover:to-orange-50 border border-slate-200 hover:border-amber-300 text-slate-700 hover:text-amber-700 font-semibold rounded-xl shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white"
                   title={
-                    !isOnline
+                    !isFirebaseConfigured
+                      ? "Firebase non configuré - Mode démo uniquement"
+                      : !isOnline
                       ? "Connexion requise pour charger les exemples"
                       : examplesStatus.allLoaded
                       ? "Tous les exemples sont déjà chargés"
