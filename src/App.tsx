@@ -48,6 +48,7 @@ interface PromptData {
   tags: string[];
   createdAt: Timestamp | null | number;
   updatedAt: Timestamp | null | number;
+  modifiedOffline?: boolean; // Flag pour indiquer qu'il a été modifié offline
 }
 
 // --- COMPOSANTS ---
@@ -86,6 +87,7 @@ export default function PromptManager() {
 
   // Clé pour le localStorage
   const STORAGE_KEY = 'prompt-manager-cache';
+  const DELETED_IDS_KEY = 'prompt-manager-deleted-ids';
 
   console.log('🚀 PromptManager: Variables d\'état configurées');
 
@@ -129,6 +131,25 @@ export default function PromptManager() {
       console.log('💾 Prompts sauvegardés en cache local');
     } catch (error) {
       console.error('Erreur lors de la sauvegarde en cache:', error);
+    }
+  };
+
+  // Gérer les IDs supprimés offline
+  const saveDeletedIds = (ids: string[]) => {
+    try {
+      localStorage.setItem(DELETED_IDS_KEY, JSON.stringify(ids));
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde des IDs supprimés:', error);
+    }
+  };
+
+  const getDeletedIds = (): string[] => {
+    try {
+      const stored = localStorage.getItem(DELETED_IDS_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.error('Erreur lors du chargement des IDs supprimés:', error);
+      return [];
     }
   };
 
@@ -185,24 +206,29 @@ export default function PromptManager() {
       return;
     }
 
-    // Trouver les prompts avec ID offline
-    const offlinePrompts = prompts.filter(p => p.id.startsWith('offline-'));
+    // Trouver les prompts créés offline et les prompts modifiés offline
+    const createdOffline = prompts.filter(p => p.id.startsWith('offline-'));
+    const modifiedOffline = prompts.filter(p => p.modifiedOffline && !p.id.startsWith('offline-'));
+    const deletedIds = getDeletedIds();
 
-    if (offlinePrompts.length === 0) {
-      console.log('✅ Aucun prompt offline à synchroniser');
+    const totalToSync = createdOffline.length + modifiedOffline.length + deletedIds.length;
+
+    if (totalToSync === 0) {
+      console.log('✅ Aucun prompt à synchroniser');
       return;
     }
 
-    console.log(`🔄 Synchronisation de ${offlinePrompts.length} prompt(s) offline...`);
+    console.log(`🔄 Synchronisation : ${createdOffline.length} créé(s), ${modifiedOffline.length} modifié(s), ${deletedIds.length} supprimé(s)...`);
     setIsSyncing(true);
 
     try {
       const collectionRef = collection(db, 'artifacts', appId, 'users', user.uid, 'prompts');
       let syncedCount = 0;
+      let updatedPrompts = [...prompts];
 
-      for (const offlinePrompt of offlinePrompts) {
+      // 1. Créer les nouveaux prompts sur Firebase
+      for (const offlinePrompt of createdOffline) {
         try {
-          // Créer le prompt sur Firebase
           const docRef = await addDoc(collectionRef, {
             title: offlinePrompt.title,
             content: offlinePrompt.content,
@@ -212,23 +238,78 @@ export default function PromptManager() {
             updatedAt: serverTimestamp()
           });
 
-          console.log(`✅ Prompt "${offlinePrompt.title}" synchronisé avec ID: ${docRef.id}`);
+          console.log(`✅ Nouveau prompt "${offlinePrompt.title}" créé sur Firebase avec ID: ${docRef.id}`);
           syncedCount++;
 
           // Supprimer la version offline du cache local
-          const updatedPrompts = prompts.filter(p => p.id !== offlinePrompt.id);
-          setPrompts(updatedPrompts);
-          saveToLocalStorage(updatedPrompts);
+          updatedPrompts = updatedPrompts.filter(p => p.id !== offlinePrompt.id);
         } catch (error) {
-          console.error(`❌ Erreur lors de la sync du prompt "${offlinePrompt.title}":`, error);
+          console.error(`❌ Erreur lors de la création du prompt "${offlinePrompt.title}":`, error);
         }
       }
 
-      console.log(`🎉 Synchronisation terminée: ${syncedCount}/${offlinePrompts.length} prompt(s) synchronisé(s)`);
+      // 2. Mettre à jour les prompts modifiés offline sur Firebase
+      for (const modifiedPrompt of modifiedOffline) {
+        try {
+          const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'prompts', modifiedPrompt.id);
+          await updateDoc(docRef, {
+            title: modifiedPrompt.title,
+            content: modifiedPrompt.content,
+            category: modifiedPrompt.category,
+            tags: modifiedPrompt.tags,
+            updatedAt: serverTimestamp()
+          });
+
+          console.log(`✅ Prompt "${modifiedPrompt.title}" mis à jour sur Firebase`);
+          syncedCount++;
+
+          // Retirer le flag modifiedOffline
+          updatedPrompts = updatedPrompts.map(p =>
+            p.id === modifiedPrompt.id
+              ? { ...p, modifiedOffline: undefined }
+              : p
+          );
+        } catch (error) {
+          console.error(`❌ Erreur lors de la mise à jour du prompt "${modifiedPrompt.title}":`, error);
+        }
+      }
+
+      // 3. Supprimer les prompts supprimés offline de Firebase
+      for (const deletedId of deletedIds) {
+        try {
+          const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'prompts', deletedId);
+          await deleteDoc(docRef);
+
+          console.log(`✅ Prompt supprimé de Firebase: ${deletedId}`);
+          syncedCount++;
+        } catch (error) {
+          console.error(`❌ Erreur lors de la suppression du prompt ${deletedId}:`, error);
+        }
+      }
+
+      // Vider la liste des IDs supprimés
+      if (deletedIds.length > 0) {
+        saveDeletedIds([]);
+      }
+
+      // Sauvegarder les modifications localement
+      setPrompts(updatedPrompts);
+      saveToLocalStorage(updatedPrompts);
+
+      console.log(`🎉 Synchronisation terminée: ${syncedCount}/${totalToSync} prompt(s) synchronisé(s)`);
 
       if (syncedCount > 0) {
-        // Afficher un message de succès à l'utilisateur
-        setSyncMessage(`${syncedCount} prompt(s) synchronisé(s) avec Firebase !`);
+        // Afficher un message de succès détaillé
+        const parts: string[] = [];
+        if (createdOffline.length > 0) parts.push(`${createdOffline.length} créé(s)`);
+        if (modifiedOffline.length > 0) parts.push(`${modifiedOffline.length} modifié(s)`);
+        if (deletedIds.length > 0) parts.push(`${deletedIds.length} supprimé(s)`);
+
+        const message = parts.length > 1
+          ? parts.join(', ') + ' synchronisé(s) !'
+          : `${syncedCount} prompt(s) synchronisé(s) !`;
+
+        setSyncMessage(message);
         setTimeout(() => setSyncMessage(null), 4000);
       }
     } catch (error) {
@@ -381,7 +462,7 @@ export default function PromptManager() {
         const now = Date.now(); // Utiliser timestamp en millisecondes
 
         if (editingPrompt) {
-          // Mise à jour locale
+          // Mise à jour locale - marquer comme modifié offline
           const updatedPrompts = prompts.map(p =>
             p.id === editingPrompt.id
               ? {
@@ -390,13 +471,14 @@ export default function PromptManager() {
                   content: formData.content,
                   category: formData.category,
                   tags: tags,
-                  updatedAt: now
+                  updatedAt: now,
+                  modifiedOffline: true // Marquer pour synchronisation
                 }
               : p
           );
           setPrompts(updatedPrompts);
           saveToLocalStorage(updatedPrompts);
-          console.log('💾 Prompt mis à jour localement (offline)');
+          console.log('💾 Prompt mis à jour localement (offline) - marqué pour sync');
         } else {
           // Création locale avec ID temporaire
           const newPrompt: PromptData = {
@@ -454,16 +536,28 @@ export default function PromptManager() {
     if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce prompt ?")) return;
 
     try {
-      // MODE OFFLINE ou Firebase non configuré : supprimer localement
+      // Supprimer localement dans tous les cas
+      const updatedPrompts = prompts.filter(p => p.id !== id);
+      setPrompts(updatedPrompts);
+      saveToLocalStorage(updatedPrompts);
+
+      // MODE OFFLINE ou Firebase non configuré : marquer pour suppression future
       if (!isOnline || !isFirebaseConfigured || !user) {
-        const updatedPrompts = prompts.filter(p => p.id !== id);
-        setPrompts(updatedPrompts);
-        saveToLocalStorage(updatedPrompts);
-        console.log('💾 Prompt supprimé localement (offline)');
+        // Si c'est un prompt avec un vrai ID Firebase (pas offline-), le marquer pour suppression
+        if (!id.startsWith('offline-')) {
+          const deletedIds = getDeletedIds();
+          if (!deletedIds.includes(id)) {
+            deletedIds.push(id);
+            saveDeletedIds(deletedIds);
+            console.log('💾 Prompt supprimé localement et marqué pour suppression sur Firebase');
+          }
+        } else {
+          console.log('💾 Prompt offline supprimé localement uniquement');
+        }
         return;
       }
 
-      // MODE ONLINE avec Firebase : supprimer de Firebase
+      // MODE ONLINE avec Firebase : supprimer immédiatement de Firebase
       const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'prompts', id);
       await deleteDoc(docRef);
       console.log('☁️ Prompt supprimé de Firebase');
