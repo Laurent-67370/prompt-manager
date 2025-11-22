@@ -302,47 +302,72 @@ export default function PromptManager() {
     }
   };
 
+  const EXAMPLE_PROMPTS = [
+    {
+      title: "Traducteur de code Python vers JavaScript",
+      content: "Traduis le code Python suivant en JavaScript moderne (ES6+). Assure-toi d'utiliser les meilleures pratiques JavaScript et explique les différences principales entre les deux versions.",
+      category: "Code",
+      tags: ["python", "javascript", "traduction", "code"]
+    },
+    {
+      title: "Générateur de documentation technique",
+      content: "Génère une documentation technique complète pour le code suivant. Inclus : description générale, paramètres, valeurs de retour, exemples d'utilisation et notes importantes.",
+      category: "Code",
+      tags: ["documentation", "code", "technique"]
+    },
+    {
+      title: "Optimiseur de prompts",
+      content: "Analyse le prompt suivant et propose une version optimisée qui donnera de meilleurs résultats avec les IA. Explique les améliorations apportées.",
+      category: "Général",
+      tags: ["prompt", "optimisation", "ia"]
+    },
+    {
+      title: "Rédacteur d'article de blog SEO",
+      content: "Rédige un article de blog de 800-1000 mots sur [SUJET]. L'article doit être optimisé SEO, informatif, engageant et inclure : introduction accrocheuse, 3-5 sections principales avec sous-titres H2/H3, conclusion avec CTA.",
+      category: "Rédaction",
+      tags: ["blog", "seo", "rédaction", "marketing"]
+    },
+    {
+      title: "Analyseur de données CSV",
+      content: "Analyse le fichier CSV suivant et fournis : statistiques descriptives, tendances principales, anomalies détectées, visualisations recommandées et insights clés pour la prise de décision.",
+      category: "Analyse",
+      tags: ["données", "csv", "analyse", "statistiques"]
+    }
+  ];
+
+  // Calculer quels exemples sont déjà chargés
+  const examplesStatus = useMemo(() => {
+    const existingTitles = new Set(prompts.map(p => p.title));
+    const missing = EXAMPLE_PROMPTS.filter(ex => !existingTitles.has(ex.title));
+    const existing = EXAMPLE_PROMPTS.filter(ex => existingTitles.has(ex.title));
+    return {
+      missingCount: missing.length,
+      existingCount: existing.length,
+      allLoaded: missing.length === 0,
+      missingExamples: missing
+    };
+  }, [prompts]);
+
   const loadExamplePrompts = async () => {
     if (!user) return;
-    if (!window.confirm("Voulez-vous charger des exemples de prompts ? Cela ajoutera quelques prompts prédéfinis à votre collection.")) return;
 
-    const examples = [
-      {
-        title: "Traducteur de code Python vers JavaScript",
-        content: "Traduis le code Python suivant en JavaScript moderne (ES6+). Assure-toi d'utiliser les meilleures pratiques JavaScript et explique les différences principales entre les deux versions.",
-        category: "Code",
-        tags: ["python", "javascript", "traduction", "code"]
-      },
-      {
-        title: "Générateur de documentation technique",
-        content: "Génère une documentation technique complète pour le code suivant. Inclus : description générale, paramètres, valeurs de retour, exemples d'utilisation et notes importantes.",
-        category: "Code",
-        tags: ["documentation", "code", "technique"]
-      },
-      {
-        title: "Optimiseur de prompts",
-        content: "Analyse le prompt suivant et propose une version optimisée qui donnera de meilleurs résultats avec les IA. Explique les améliorations apportées.",
-        category: "Général",
-        tags: ["prompt", "optimisation", "ia"]
-      },
-      {
-        title: "Rédacteur d'article de blog SEO",
-        content: "Rédige un article de blog de 800-1000 mots sur [SUJET]. L'article doit être optimisé SEO, informatif, engageant et inclure : introduction accrocheuse, 3-5 sections principales avec sous-titres H2/H3, conclusion avec CTA.",
-        category: "Rédaction",
-        tags: ["blog", "seo", "rédaction", "marketing"]
-      },
-      {
-        title: "Analyseur de données CSV",
-        content: "Analyse le fichier CSV suivant et fournis : statistiques descriptives, tendances principales, anomalies détectées, visualisations recommandées et insights clés pour la prise de décision.",
-        category: "Analyse",
-        tags: ["données", "csv", "analyse", "statistiques"]
-      }
-    ];
+    const { missingCount, existingCount, missingExamples } = examplesStatus;
+
+    if (missingCount === 0) {
+      alert("Tous les exemples sont déjà chargés dans votre collection !");
+      return;
+    }
+
+    const confirmMessage = existingCount > 0
+      ? `${existingCount} exemple(s) déjà présent(s). Voulez-vous charger les ${missingCount} exemple(s) manquant(s) ?`
+      : `Voulez-vous charger ${missingCount} exemples de prompts prédéfinis ?`;
+
+    if (!window.confirm(confirmMessage)) return;
 
     try {
       const collectionRef = collection(db, 'artifacts', appId, 'users', user.uid, 'prompts');
 
-      for (const example of examples) {
+      for (const example of missingExamples) {
         await addDoc(collectionRef, {
           ...example,
           createdAt: serverTimestamp(),
@@ -350,7 +375,7 @@ export default function PromptManager() {
         });
       }
 
-      alert(`${examples.length} exemples de prompts chargés avec succès !`);
+      alert(`${missingExamples.length} exemple(s) ajouté(s) avec succès !`);
     } catch (error) {
       console.error("Erreur lors du chargement des exemples:", error);
       alert("Erreur lors du chargement des exemples");
@@ -439,11 +464,20 @@ export default function PromptManager() {
 
                 <button
                   onClick={loadExamplePrompts}
-                  className="flex items-center gap-2 px-4 py-3 bg-white border-2 border-amber-200 text-amber-700 font-semibold rounded-xl hover:bg-amber-50 hover:border-amber-300 active:scale-95 transition-all shadow-sm"
-                  title="Charger des exemples de prompts"
+                  disabled={examplesStatus.allLoaded}
+                  className="flex items-center gap-2 px-4 py-3 bg-white border-2 border-amber-200 text-amber-700 font-semibold rounded-xl hover:bg-amber-50 hover:border-amber-300 active:scale-95 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
+                  title={
+                    examplesStatus.allLoaded
+                      ? "Tous les exemples sont déjà chargés"
+                      : examplesStatus.existingCount > 0
+                      ? `${examplesStatus.missingCount} exemple(s) manquant(s) à charger`
+                      : "Charger 5 exemples de prompts prédéfinis"
+                  }
                 >
                   <FileJson className="w-5 h-5" />
-                  <span className="hidden md:inline">Exemples</span>
+                  <span className="hidden md:inline">
+                    Exemples {examplesStatus.existingCount > 0 && !examplesStatus.allLoaded && `(${examplesStatus.missingCount})`}
+                  </span>
                 </button>
               </div>
             </div>
