@@ -15,20 +15,23 @@ import {
   serverTimestamp, 
   Timestamp 
 } from 'firebase/firestore';
-import { 
-  Plus, 
-  Search, 
-  Edit2, 
-  Trash2, 
-  Copy, 
-  Save, 
-  X, 
-  Tag, 
+import {
+  Plus,
+  Search,
+  Edit2,
+  Trash2,
+  Copy,
+  Save,
+  X,
+  Tag,
   Terminal,
   CheckCircle2,
   Loader2,
   LayoutGrid,
-  List as ListIcon
+  List as ListIcon,
+  Download,
+  Upload,
+  FileJson
 } from 'lucide-react';
 
 // --- TYPES ---
@@ -197,6 +200,163 @@ export default function PromptManager() {
     }
   };
 
+  // --- EXPORT/IMPORT ---
+
+  const exportAllPrompts = () => {
+    try {
+      const exportData = prompts.map(prompt => ({
+        title: prompt.title,
+        content: prompt.content,
+        category: prompt.category,
+        tags: prompt.tags,
+        createdAt: prompt.createdAt?.toDate().toISOString(),
+        updatedAt: prompt.updatedAt?.toDate().toISOString()
+      }));
+
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `prompts-export-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      const id = Date.now().toString();
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (error) {
+      console.error("Erreur lors de l'export:", error);
+      alert("Erreur lors de l'export des prompts");
+    }
+  };
+
+  const exportSinglePrompt = (prompt: PromptData) => {
+    try {
+      const exportData = {
+        title: prompt.title,
+        content: prompt.content,
+        category: prompt.category,
+        tags: prompt.tags,
+        createdAt: prompt.createdAt?.toDate().toISOString(),
+        updatedAt: prompt.updatedAt?.toDate().toISOString()
+      };
+
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `prompt-${prompt.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      const id = Date.now().toString();
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (error) {
+      console.error("Erreur lors de l'export:", error);
+      alert("Erreur lors de l'export du prompt");
+    }
+  };
+
+  const importPrompts = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    try {
+      const text = await file.text();
+      const importedData = JSON.parse(text);
+
+      // Vérifier si c'est un tableau ou un objet unique
+      const promptsToImport = Array.isArray(importedData) ? importedData : [importedData];
+
+      const collectionRef = collection(db, 'artifacts', appId, 'users', user.uid, 'prompts');
+
+      let successCount = 0;
+      for (const promptData of promptsToImport) {
+        if (promptData.title && promptData.content) {
+          await addDoc(collectionRef, {
+            title: promptData.title,
+            content: promptData.content,
+            category: promptData.category || 'Général',
+            tags: promptData.tags || [],
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+          successCount++;
+        }
+      }
+
+      alert(`${successCount} prompt(s) importé(s) avec succès !`);
+
+      // Réinitialiser l'input file
+      event.target.value = '';
+    } catch (error) {
+      console.error("Erreur lors de l'import:", error);
+      alert("Erreur lors de l'import. Vérifiez que le fichier JSON est valide.");
+    }
+  };
+
+  const loadExamplePrompts = async () => {
+    if (!user) return;
+    if (!window.confirm("Voulez-vous charger des exemples de prompts ? Cela ajoutera quelques prompts prédéfinis à votre collection.")) return;
+
+    const examples = [
+      {
+        title: "Traducteur de code Python vers JavaScript",
+        content: "Traduis le code Python suivant en JavaScript moderne (ES6+). Assure-toi d'utiliser les meilleures pratiques JavaScript et explique les différences principales entre les deux versions.",
+        category: "Code",
+        tags: ["python", "javascript", "traduction", "code"]
+      },
+      {
+        title: "Générateur de documentation technique",
+        content: "Génère une documentation technique complète pour le code suivant. Inclus : description générale, paramètres, valeurs de retour, exemples d'utilisation et notes importantes.",
+        category: "Code",
+        tags: ["documentation", "code", "technique"]
+      },
+      {
+        title: "Optimiseur de prompts",
+        content: "Analyse le prompt suivant et propose une version optimisée qui donnera de meilleurs résultats avec les IA. Explique les améliorations apportées.",
+        category: "Général",
+        tags: ["prompt", "optimisation", "ia"]
+      },
+      {
+        title: "Rédacteur d'article de blog SEO",
+        content: "Rédige un article de blog de 800-1000 mots sur [SUJET]. L'article doit être optimisé SEO, informatif, engageant et inclure : introduction accrocheuse, 3-5 sections principales avec sous-titres H2/H3, conclusion avec CTA.",
+        category: "Rédaction",
+        tags: ["blog", "seo", "rédaction", "marketing"]
+      },
+      {
+        title: "Analyseur de données CSV",
+        content: "Analyse le fichier CSV suivant et fournis : statistiques descriptives, tendances principales, anomalies détectées, visualisations recommandées et insights clés pour la prise de décision.",
+        category: "Analyse",
+        tags: ["données", "csv", "analyse", "statistiques"]
+      }
+    ];
+
+    try {
+      const collectionRef = collection(db, 'artifacts', appId, 'users', user.uid, 'prompts');
+
+      for (const example of examples) {
+        await addDoc(collectionRef, {
+          ...example,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+      }
+
+      alert(`${examples.length} exemples de prompts chargés avec succès !`);
+    } catch (error) {
+      console.error("Erreur lors du chargement des exemples:", error);
+      alert("Erreur lors du chargement des exemples");
+    }
+  };
+
   // --- FILTRAGE ET RECHERCHE ---
   const filteredPrompts = useMemo(() => {
     if (!searchTerm.trim()) return prompts;
@@ -246,13 +406,47 @@ export default function PromptManager() {
               </div>
             </div>
 
-            <button 
-              onClick={() => handleOpenModal()}
-              className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl active:scale-95 transition-all"
-            >
-              <Plus className="w-5 h-5" />
-              Nouveau Prompt
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => handleOpenModal()}
+                className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl active:scale-95 transition-all"
+              >
+                <Plus className="w-5 h-5" />
+                <span className="hidden sm:inline">Nouveau Prompt</span>
+              </button>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={exportAllPrompts}
+                  disabled={prompts.length === 0}
+                  className="flex items-center gap-2 px-4 py-3 bg-white border-2 border-indigo-200 text-indigo-700 font-semibold rounded-xl hover:bg-indigo-50 hover:border-indigo-300 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                  title="Exporter tous les prompts"
+                >
+                  <Download className="w-5 h-5" />
+                  <span className="hidden md:inline">Exporter</span>
+                </button>
+
+                <label className="flex items-center gap-2 px-4 py-3 bg-white border-2 border-green-200 text-green-700 font-semibold rounded-xl hover:bg-green-50 hover:border-green-300 active:scale-95 transition-all cursor-pointer shadow-sm">
+                  <Upload className="w-5 h-5" />
+                  <span className="hidden md:inline">Importer</span>
+                  <input
+                    type="file"
+                    accept=".json"
+                    onChange={importPrompts}
+                    className="hidden"
+                  />
+                </label>
+
+                <button
+                  onClick={loadExamplePrompts}
+                  className="flex items-center gap-2 px-4 py-3 bg-white border-2 border-amber-200 text-amber-700 font-semibold rounded-xl hover:bg-amber-50 hover:border-amber-300 active:scale-95 transition-all shadow-sm"
+                  title="Charger des exemples de prompts"
+                >
+                  <FileJson className="w-5 h-5" />
+                  <span className="hidden md:inline">Exemples</span>
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* BARRE DE RECHERCHE + TOGGLE VUE */}
@@ -401,21 +595,28 @@ export default function PromptManager() {
                           </td>
                           <td className="p-4 align-top text-right">
                             <div className="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
-                              <button 
+                              <button
                                 onClick={() => copyToClipboard(prompt.content)}
                                 className="p-2 hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 rounded-lg transition-colors"
                                 title="Copier"
                               >
                                 <Copy className="w-4 h-4" />
                               </button>
-                              <button 
+                              <button
+                                onClick={() => exportSinglePrompt(prompt)}
+                                className="p-2 hover:bg-green-50 text-slate-500 hover:text-green-600 rounded-lg transition-colors"
+                                title="Exporter ce prompt"
+                              >
+                                <Download className="w-4 h-4" />
+                              </button>
+                              <button
                                 onClick={() => handleOpenModal(prompt)}
                                 className="p-2 hover:bg-amber-50 text-slate-500 hover:text-amber-600 rounded-lg transition-colors"
                                 title="Modifier"
                               >
                                 <Edit2 className="w-4 h-4" />
                               </button>
-                              <button 
+                              <button
                                 onClick={() => handleDelete(prompt.id)}
                                 className="p-2 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded-lg transition-colors"
                                 title="Supprimer"
@@ -445,13 +646,20 @@ export default function PromptManager() {
                         <h3 className="font-bold text-slate-800 text-lg">{prompt.title}</h3>
                       </div>
                       <div className="flex gap-1">
-                        <button 
+                        <button
+                          onClick={() => exportSinglePrompt(prompt)}
+                          className="p-1.5 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded transition-colors"
+                          title="Exporter ce prompt"
+                        >
+                          <Download className="w-4 h-4" />
+                        </button>
+                        <button
                           onClick={() => handleOpenModal(prompt)}
                           className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDelete(prompt.id)}
                           className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                         >

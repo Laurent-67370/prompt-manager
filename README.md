@@ -9,6 +9,8 @@ Application React moderne pour organiser et gérer vos prompts IA avec Firebase.
 - 📊 **Double affichage** : Vue tableau ou grille
 - 🏷️ **Organisation** : Catégories et tags personnalisables
 - 📋 **Copie rapide** : Un clic pour copier dans le presse-papiers
+- 💾 **Import/Export** : Sauvegardez et chargez vos prompts depuis/vers des fichiers JSON
+- 📦 **Exemples intégrés** : Chargez des prompts d'exemple prédéfinis pour démarrer rapidement
 - 🔐 **Sécurisé** : Authentification Firebase et données privées
 - 📱 **Responsive** : Design adapté mobile, tablette et desktop
 
@@ -104,6 +106,49 @@ prompt-manager/
 2. Glissez-déposez le dossier `dist` sur Netlify
 3. Ajoutez les variables d'environnement
 4. Redéployez
+
+## 📥 Import/Export de Prompts
+
+### Exporter vos prompts
+
+- **Exporter tous les prompts** : Cliquez sur le bouton "Exporter" dans le header pour télécharger tous vos prompts dans un fichier JSON
+- **Exporter un prompt unique** : Dans la vue tableau ou grille, cliquez sur l'icône de téléchargement (Download) pour exporter un prompt spécifique
+
+Les fichiers exportés contiennent :
+- Le titre du prompt
+- Le contenu complet
+- La catégorie
+- Les tags associés
+- Les dates de création et modification
+
+### Importer des prompts
+
+1. Cliquez sur le bouton "Importer" dans le header
+2. Sélectionnez un fichier JSON contenant des prompts
+3. Les prompts seront automatiquement ajoutés à votre collection
+
+**Format du fichier JSON** :
+```json
+[
+  {
+    "title": "Titre du prompt",
+    "content": "Contenu du prompt...",
+    "category": "Code",
+    "tags": ["python", "javascript"]
+  }
+]
+```
+
+Le fichier peut contenir un seul prompt (objet JSON) ou plusieurs prompts (tableau JSON).
+
+### Charger des exemples
+
+Cliquez sur le bouton "Exemples" pour charger automatiquement 5 prompts d'exemple couvrant différentes catégories :
+- Traduction de code
+- Génération de documentation
+- Optimisation de prompts
+- Rédaction SEO
+- Analyse de données
 
 ## 🔐 Sécurité
 
