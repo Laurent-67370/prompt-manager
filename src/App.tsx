@@ -1516,6 +1516,33 @@ export default function PromptManager() {
                   </div>
                 </div>
 
+                {/* Mode Hors Ligne */}
+                <div>
+                  <h3 className="text-xl font-black text-slate-900 mb-4 flex items-center gap-2">
+                    <WifiOff className="w-5 h-5 text-slate-600" />
+                    Mode Hors Ligne & Synchro
+                  </h3>
+                  <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-xl p-5 border-2 border-slate-200/50">
+                    <p className="text-sm text-slate-700 leading-relaxed mb-3">
+                      Prompt Manager fonctionne même sans connexion internet !
+                    </p>
+                    <ul className="text-sm text-slate-700 space-y-2">
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 font-bold">✓</span>
+                        <span><strong>Créez, modifiez et supprimez</strong> vos prompts librement hors ligne.</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-blue-600 font-bold">↻</span>
+                        <span>Vos modifications sont <strong>synchronisées automatiquement</strong> dès que la connexion est rétablie.</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-amber-600 font-bold">⚠</span>
+                        <span>L'import et le chargement d'exemples nécessitent une connexion active.</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
                 {/* Raccourcis */}
                 <div>
                   <h3 className="text-xl font-black text-slate-900 mb-4">Astuces et raccourcis</h3>
