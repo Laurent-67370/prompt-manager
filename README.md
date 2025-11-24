@@ -250,20 +250,20 @@ L'application dispose d'un **mode offline complet** avec cache local persistant 
 - ✅ Copie des prompts dans le presse-papiers
 - ✅ Basculement entre vue Table et Grille
 - ✅ Visualisation des statistiques
+- ✅ Création de nouveaux prompts (synchronisation automatique)
+- ✅ Modification de prompts existants (synchronisation automatique)
+- ✅ Suppression de prompts (synchronisation automatique)
 
 #### ⚠️ Fonctionnalités nécessitant une connexion
-- 🔌 Création de nouveaux prompts
-- 🔌 Modification de prompts existants
-- 🔌 Suppression de prompts
 - 🔌 Import de prompts JSON
 - 🔌 Chargement des exemples prédéfinis
 
 #### 🔄 Synchronisation
 Dès que la connexion est rétablie :
 1. L'indicateur "Mode hors ligne" disparaît
-2. Les boutons se réactivent automatiquement
+2. Les changements effectués hors ligne (création, modification, suppression) sont envoyés vers Firebase
 3. Les données Firebase se synchronisent avec le cache local
-4. Toutes les fonctionnalités redeviennent disponibles
+4. Les fonctionnalités d'import et de chargement d'exemples se réactivent
 
 ## 🔐 Sécurité
 

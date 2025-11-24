@@ -75,7 +75,7 @@ location.reload();
 Si vous démarrez l'application en mode offline :
 - Les prompts en cache seront chargés automatiquement
 - Un badge "Mode hors ligne" apparaîtra en haut
-- Les boutons nécessitant une connexion seront désactivés
+- Les boutons nécessitant une connexion (Import, Exemples) seront désactivés
 - Vous ne verrez pas d'écran blanc, mais l'état "Aucun prompt enregistré" si le cache est vide
 
 ### 7. Obtenir de l'aide
