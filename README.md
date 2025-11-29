@@ -5,18 +5,18 @@ Application React moderne pour organiser et gérer vos prompts IA avec Firebase.
 ## ✨ Fonctionnalités
 
 - ✅ **Gestion complète** : Créer, modifier, supprimer des prompts
-- 🔍 **Recherche puissante** : Par titre, contenu, catégorie ou tags avec bouton clear
+- 🔍 **Recherche puissante** : Par titre, contenu, catégorie ou tags avec bouton d'effacement
 - 📊 **Double affichage** : Vue tableau ou grille avec animations fluides
 - 🏷️ **Organisation** : Catégories et tags personnalisables
 - 📋 **Copie rapide** : Un clic pour copier dans le presse-papiers
 - 💾 **Import/Export** : Sauvegardez et chargez vos prompts depuis/vers des fichiers JSON
 - 📦 **Exemples intégrés** : Chargez des prompts d'exemple prédéfinis (détection automatique des doublons)
-- 🎨 **Design moderne** : Interface premium avec glassmorphism, gradients et micro-animations
+- 🎨 **Design moderne** : Interface premium avec glassmorphism, dégradés et micro-animations
 - 💡 **Aide intégrée** : Guide d'utilisation complet accessible en un clic
 - 📊 **Statistiques en temps réel** : Visualisez vos prompts, catégories et tags
-- 📱 **Progressive Web App (PWA)** : Installez l'app sur votre appareil et utilisez-la offline avec cache localStorage
+- 📱 **Progressive Web App (PWA)** : Installez l'app sur votre appareil et utilisez-la hors ligne avec le cache localStorage
 - 🔐 **Sécurisé** : Authentification Firebase et données privées
-- 📱 **Responsive** : Design adapté mobile, tablette et desktop
+- 📱 **Responsive** : Design adapté mobile, tablette et bureau
 
 ## 🎯 Démarrage rapide
 
@@ -81,12 +81,15 @@ npm run preview
 ```
 prompt-manager/
 ├── src/
-│   ├── App.tsx              # Composant principal
+│   ├── App.tsx             # Composant principal
 │   ├── main.tsx            # Point d'entrée React
 │   ├── index.css           # Styles globaux
+│   ├── vite-env.d.ts       # Définitions de types Vite
 │   └── config/
 │       └── firebase.ts     # Configuration Firebase
-├── public/                 # Assets statiques
+├── public/                 # Actifs statiques
+├── scripts/                # Scripts utilitaires
+│   └── generate-icons.js   # Script pour générer les icônes PWA
 ├── .env                    # Variables d'environnement (à créer)
 ├── .env.example           # Exemple de variables
 ├── netlify.toml           # Configuration Netlify
@@ -115,19 +118,19 @@ prompt-manager/
 
 ### Exporter vos prompts
 
-- **Exporter tous les prompts** : Cliquez sur le bouton "Exporter" dans le header pour télécharger tous vos prompts dans un fichier JSON
-- **Exporter un prompt unique** : Dans la vue tableau ou grille, cliquez sur l'icône de téléchargement (Download) pour exporter un prompt spécifique
+- **Exporter tous les prompts** : Cliquez sur le bouton "Exporter" dans l'en-tête pour télécharger tous vos prompts dans un fichier JSON
+- **Exporter un prompt unique** : Dans la vue tableau ou grille, cliquez sur l'icône de téléchargement pour exporter un prompt spécifique
 
 Les fichiers exportés contiennent :
 - Le titre du prompt
 - Le contenu complet
 - La catégorie
 - Les tags associés
-- Les dates de création et modification
+- Les dates de création et de modification
 
 ### Importer des prompts
 
-1. Cliquez sur le bouton "Importer" dans le header
+1. Cliquez sur le bouton "Importer" dans l'en-tête
 2. Sélectionnez un fichier JSON contenant des prompts
 3. Les prompts seront automatiquement ajoutés à votre collection
 
@@ -135,7 +138,7 @@ Les fichiers exportés contiennent :
 ```json
 [
   {
-    "title": "Titre du prompt",
+    "title": "Titre du Prompt",
     "content": "Contenu du prompt...",
     "category": "Code",
     "tags": ["python", "javascript"]
@@ -158,7 +161,7 @@ Cliquez sur le bouton "Exemples" pour charger automatiquement 5 prompts d'exempl
 
 ## 💡 Aide Intégrée
 
-L'application dispose d'un **guide d'utilisation complet** accessible via le bouton "Aide" dans le header (icône `?`).
+L'application dispose d'un **guide d'utilisation complet** accessible via le bouton "Aide" dans l'en-tête (icône `?`).
 
 Le guide comprend :
 - 🚀 **Démarrage rapide** : 3 étapes simples pour commencer
@@ -181,55 +184,9 @@ Prompt Manager est une **Progressive Web App** complète ! Vous pouvez l'install
 - 🔄 **Mises à jour automatiques** : L'app se met à jour automatiquement en arrière-plan
 - 📱 **Expérience native** : Pas de barre d'adresse, plein écran sur mobile
 
-### 📥 Installation
+### 🔧 Fonctionnalités Hors Ligne
 
-#### Sur Desktop (Chrome, Edge, Brave)
-1. Visitez l'application dans votre navigateur
-2. Cliquez sur l'icône d'installation (➕) dans la barre d'adresse
-3. Ou allez dans Menu > "Installer Prompt Manager"
-4. Cliquez sur "Installer"
-5. L'app s'ouvre comme une application native !
-
-#### Sur Mobile (iOS Safari)
-1. Ouvrez l'app dans Safari
-2. Appuyez sur le bouton Partager (📤)
-3. Sélectionnez "Sur l'écran d'accueil"
-4. Appuyez sur "Ajouter"
-5. L'icône apparaît sur votre écran d'accueil
-
-#### Sur Mobile (Android Chrome)
-1. Ouvrez l'app dans Chrome
-2. Appuyez sur le menu (⋮)
-3. Sélectionnez "Installer l'application"
-4. Ou cliquez sur la bannière d'installation qui apparaît
-5. Appuyez sur "Installer"
-
-### 🎨 Génération des Icônes PWA
-
-Les icônes PWA doivent être générées avant le déploiement :
-
-```bash
-# Option 1: ImageMagick
-convert -background none public/icon.svg -resize 192x192 public/icon-192.png
-convert -background none public/icon.svg -resize 512x512 public/icon-512.png
-
-# Option 2: En ligne
-# Utilisez https://convertio.co/svg-png/
-# Uploadez public/icon.svg et convertissez aux tailles 192x192 et 512x512
-```
-
-Consultez `public/ICONS_README.md` pour plus de détails.
-
-### ⚙️ Configuration PWA
-
-L'application utilise :
-- **manifest.json** : Configuration de l'app (nom, icônes, couleurs, etc.)
-- **Service Worker (sw.js)** : Gestion du cache et mode offline
-- **Cache Strategy** : Cache-first pour les assets, network-first pour Firebase
-
-### 🔧 Fonctionnalités Offline
-
-L'application dispose d'un **mode offline complet** avec cache local persistant :
+L'application dispose d'un **mode hors ligne complet** avec cache local persistant :
 
 #### 📦 Cache Local (localStorage)
 - ✅ **Sauvegarde automatique** : Tous vos prompts sont sauvegardés localement
@@ -237,7 +194,7 @@ L'application dispose d'un **mode offline complet** avec cache local persistant 
 - ✅ **Persistance des données** : Vos prompts restent disponibles même hors ligne
 - 🔄 **Synchronisation automatique** : Mise à jour du cache quand vous êtes en ligne
 
-#### 🌐 Détection Online/Offline
+#### 🌐 Détection En Ligne/Hors Ligne
 - 📶 **Indicateur de statut** : Badge "Mode hors ligne" visible en haut de page
 - 🎯 **Adaptation intelligente** : Les boutons nécessitant une connexion sont désactivés
 - ⚡ **Basculement automatique** : L'app détecte et s'adapte aux changements de connexion
@@ -272,34 +229,12 @@ Dès que la connexion est rétablie :
 - Règles Firestore strictes
 - Pas de données sensibles dans le code
 
-## 🎨 Design Moderne
-
-L'application bénéficie d'un design premium avec :
-
-### Interface
-- ✨ **Glassmorphism** : Effets de verre dépoli et transparence
-- 🌈 **Gradients** : Dégradés de couleurs harmonieux
-- 💫 **Animations fluides** : Transitions et micro-interactions (hover, scale, translate)
-- 🎯 **Ombres dynamiques** : Effets d'élévation au survol
-
-### Composants
-- 🔘 **Boutons premium** : Effets de glow et animations
-- 📊 **Cartes modernes** : Bordures animées et transformations 3D
-- 🔍 **Recherche intelligente** : Focus states et bouton clear automatique
-- 📱 **Responsive complet** : Breakpoints sm, md, lg optimisés
-
-### Expérience utilisateur
-- 🎭 **États visuels** : Loading, empty state, notifications
-- 🌊 **Transitions douces** : Duration 200-300ms pour fluidité
-- 🎨 **Palette cohérente** : Indigo, purple, slate pour harmonie
-- ⚡ **Performance** : Optimisé avec useMemo et callbacks
-
 ## 🛠️ Technologies
 
 - **React 18** + **TypeScript**
 - **Firebase** (Auth + Firestore)
 - **Vite** (Build ultra-rapide)
-- **Tailwind CSS** (Styling moderne)
+- **Tailwind CSS** (Style moderne)
 - **Lucide React** (Icônes vectorielles)
 
 ## 📝 Licence
@@ -312,4 +247,4 @@ Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou un
 
 ---
 
-Créé avec ❤️ pour optimiser votre workflow IA
+Créé avec ❤️ pour optimiser votre flux de travail IA
