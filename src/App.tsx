@@ -40,19 +40,37 @@ import {
 } from 'lucide-react';
 
 // --- TYPES ---
+
+/**
+ * Interface représentant la structure de données d'un Prompt.
+ */
 interface PromptData {
+  /** Identifiant unique du prompt */
   id: string;
+  /** Titre du prompt */
   title: string;
+  /** Contenu principal/corps du prompt */
   content: string;
+  /** Catégorie à laquelle appartient le prompt */
   category: string;
+  /** Liste des tags associés au prompt */
   tags: string[];
+  /** Horodatage de la création du prompt. Peut être un Timestamp Firestore, un nombre ou null. */
   createdAt: Timestamp | null | number;
+  /** Horodatage de la dernière mise à jour du prompt. Peut être un Timestamp Firestore, un nombre ou null. */
   updatedAt: Timestamp | null | number;
-  modifiedOffline?: boolean; // Flag pour indiquer qu'il a été modifié offline
+  /** Indicateur optionnel signalant si le prompt a été modifié hors ligne */
+  modifiedOffline?: boolean;
 }
 
 // --- COMPOSANTS ---
 
+/**
+ * Composant principal de l'application Prompt Manager.
+ * Gère l'état, la persistance des données (local & Firebase), le rendu de l'interface utilisateur et les interactions utilisateur.
+ *
+ * @returns {JSX.Element} Le composant de l'application rendu.
+ */
 export default function PromptManager() {
   console.log('🚀 PromptManager: Composant initialisé');
 
@@ -93,6 +111,10 @@ export default function PromptManager() {
 
   // --- DÉTECTION ONLINE/OFFLINE ---
   useEffect(() => {
+    /**
+     * Gestionnaire pour l'événement 'online'.
+     * Met à jour l'état de connexion et déclenche la synchronisation après un délai.
+     */
     const handleOnline = () => {
       console.log('🌐 Connexion rétablie');
       setIsOnline(true);
@@ -101,6 +123,11 @@ export default function PromptManager() {
         syncOfflinePrompts();
       }, 1000);
     };
+
+    /**
+     * Gestionnaire pour l'événement 'offline'.
+     * Met à jour l'état de connexion.
+     */
     const handleOffline = () => {
       console.log('📴 Mode hors ligne');
       setIsOnline(false);
@@ -116,6 +143,13 @@ export default function PromptManager() {
   }, [prompts, user, isFirebaseConfigured]);
 
   // --- CACHE LOCAL ---
+
+  /**
+   * Sauvegarde les prompts fournis dans le stockage local.
+   * Sérialise les objets Timestamp en millisecondes pour le stockage.
+   *
+   * @param {PromptData[]} data - Le tableau de prompts à sauvegarder.
+   */
   const saveToLocalStorage = (data: PromptData[]) => {
     try {
       const serialized = JSON.stringify(data.map(p => ({
@@ -134,7 +168,12 @@ export default function PromptManager() {
     }
   };
 
-  // Gérer les IDs supprimés offline
+  /**
+   * Sauvegarde la liste des IDs de prompts supprimés dans le stockage local.
+   * Utilisé pour synchroniser les suppressions lorsque la connectivité est rétablie.
+   *
+   * @param {string[]} ids - Le tableau des IDs de prompts supprimés.
+   */
   const saveDeletedIds = (ids: string[]) => {
     try {
       localStorage.setItem(DELETED_IDS_KEY, JSON.stringify(ids));
@@ -143,6 +182,11 @@ export default function PromptManager() {
     }
   };
 
+  /**
+   * Récupère la liste des IDs de prompts supprimés depuis le stockage local.
+   *
+   * @returns {string[]} Un tableau des IDs de prompts supprimés.
+   */
   const getDeletedIds = (): string[] => {
     try {
       const stored = localStorage.getItem(DELETED_IDS_KEY);
@@ -153,6 +197,12 @@ export default function PromptManager() {
     }
   };
 
+  /**
+   * Charge les prompts depuis le stockage local.
+   * Analyse et valide les données stockées.
+   *
+   * @returns {PromptData[] | null} Le tableau des prompts chargés, ou null si aucun cache valide n'existe.
+   */
   const loadFromLocalStorage = (): PromptData[] | null => {
     try {
       console.log('📦 Tentative de chargement du cache local...');
@@ -200,6 +250,13 @@ export default function PromptManager() {
   };
 
   // --- SYNCHRONISATION OFFLINE -> ONLINE ---
+
+  /**
+   * Synchronise les prompts créés, modifiés ou supprimés localement avec Firebase.
+   * Exécuté lorsque la connectivité internet est rétablie.
+   *
+   * @returns {Promise<void>}
+   */
   const syncOfflinePrompts = async () => {
     if (!isFirebaseConfigured || !user || !isOnline) {
       console.log('⏸️ Conditions de sync non remplies');
@@ -430,6 +487,11 @@ export default function PromptManager() {
 
   // --- GESTIONNAIRES D'ACTIONS ---
 
+  /**
+   * Ouvre la modale pour créer ou modifier un prompt.
+   *
+   * @param {PromptData} [promptToEdit] - Le prompt à modifier. Si indéfini, ouvre en mode création.
+   */
   const handleOpenModal = (promptToEdit?: PromptData) => {
     if (promptToEdit) {
       setEditingPrompt(promptToEdit);
@@ -451,6 +513,10 @@ export default function PromptManager() {
     setIsModalOpen(true);
   };
 
+  /**
+   * Sauvegarde le prompt actuel (création ou mise à jour).
+   * Gère les scénarios en ligne (Firebase) et hors ligne (stockage local).
+   */
   const handleSave = async () => {
     if (!formData.title.trim() || !formData.content.trim()) return;
 
@@ -532,6 +598,12 @@ export default function PromptManager() {
     }
   };
 
+  /**
+   * Supprime un prompt par son ID.
+   * Gère les scénarios en ligne (Firebase) et hors ligne (stockage local).
+   *
+   * @param {string} id - L'identifiant du prompt à supprimer.
+   */
   const handleDelete = async (id: string) => {
     if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce prompt ?")) return;
 
@@ -567,6 +639,11 @@ export default function PromptManager() {
     }
   };
 
+  /**
+   * Copie le texte fourni dans le presse-papiers du système.
+   *
+   * @param {string} text - Le texte à copier.
+   */
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -581,6 +658,9 @@ export default function PromptManager() {
 
   // --- EXPORT/IMPORT ---
 
+  /**
+   * Exporte tous les prompts vers un fichier JSON et déclenche le téléchargement.
+   */
   const exportAllPrompts = () => {
     try {
       const exportData = prompts.map(prompt => ({
@@ -620,6 +700,11 @@ export default function PromptManager() {
     }
   };
 
+  /**
+   * Exporte un seul prompt vers un fichier JSON et déclenche le téléchargement.
+   *
+   * @param {PromptData} prompt - Le prompt à exporter.
+   */
   const exportSinglePrompt = (prompt: PromptData) => {
     try {
       const exportData = {
@@ -659,6 +744,11 @@ export default function PromptManager() {
     }
   };
 
+  /**
+   * Importe des prompts depuis un fichier JSON sélectionné.
+   *
+   * @param {React.ChangeEvent<HTMLInputElement>} event - L'événement de changement de l'entrée fichier.
+   */
   const importPrompts = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !user) return;
@@ -743,6 +833,9 @@ export default function PromptManager() {
     };
   }, [prompts]);
 
+  /**
+   * Charge un ensemble de prompts d'exemple prédéfinis dans la collection de l'utilisateur.
+   */
   const loadExamplePrompts = async () => {
     if (!user) return;
 
@@ -791,6 +884,13 @@ export default function PromptManager() {
   }, [prompts, searchTerm]);
 
   // --- UTILITAIRES ---
+
+  /**
+   * Formate un timestamp en une chaîne de date lisible.
+   *
+   * @param {Timestamp | number | null | undefined} timestamp - Le timestamp à formater.
+   * @returns {string} La chaîne de date formatée.
+   */
   const formatDate = (timestamp: Timestamp | number | null | undefined) => {
     if (!timestamp) return "Pas de date";
     try {

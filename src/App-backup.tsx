@@ -1,5 +1,12 @@
 import { useState, useEffect } from 'react';
 
+/**
+ * Une version de secours du composant PromptManager.
+ * Utilisée pour déboguer les problèmes d'initialisation ou comme solution de repli.
+ * Affiche un message d'état simple indiquant si l'application a démarré avec succès.
+ *
+ * @returns {JSX.Element} Le composant de secours rendu.
+ */
 export default function PromptManager() {
   const [status, setStatus] = useState('Initialisation...');
 

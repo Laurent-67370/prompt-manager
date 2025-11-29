@@ -5,9 +5,22 @@ import { readFileSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
+/**
+ * Obtient le chemin du fichier actuel.
+ * @type {string}
+ */
 const __filename = fileURLToPath(import.meta.url);
+
+/**
+ * Obtient le nom du répertoire du fichier actuel.
+ * @type {string}
+ */
 const __dirname = dirname(__filename);
 
+/**
+ * Tableau des tailles d'icônes requises pour la PWA.
+ * @type {number[]}
+ */
 const sizes = [192, 512];
 
 console.log('📱 Génération des icônes PWA...\n');

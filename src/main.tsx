@@ -3,13 +3,20 @@ import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 
+/**
+ * Initialise l'application React et effectue le rendu dans l'élément racine.
+ * Utilise le mode strict de React pour les vérifications de développement.
+ */
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>,
 )
 
-// Enregistrement du Service Worker pour la PWA
+/**
+ * Enregistre le Service Worker pour activer les fonctionnalités PWA (support hors ligne, mise en cache).
+ * Vérifie si le navigateur supporte les service workers avant l'enregistrement.
+ */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
